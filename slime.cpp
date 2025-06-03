@@ -1,7 +1,7 @@
 #include "Slime.h"
 
 Slime::Slime()
-    : Personaje("Slime", 40, 0, 5, false) {
+    : Personaje("Slime", 45, 0, 10, false) {
 
     // Cargar animaciones desde spritesheets
     agregarAnimacion("idle",   cargarDesdeSpritesheet("Personajes/Enemigos/Slime/Slime-Idle.png",   100, 100, 6), true);

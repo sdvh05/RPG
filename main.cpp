@@ -28,9 +28,11 @@ int main(int argc, char *argv[])
         qDebug() << "Imagen cargada correctamente.";
     }
 
+    /*
     Curandera* personaje = new Curandera();
     SkillTreeViewer* viewer = new SkillTreeViewer(personaje->getArbol(), personaje->getNivel(), nullptr);
     viewer->exec();
+*/
 
    // QApplication a(argc, argv);
     BattleWidget w;

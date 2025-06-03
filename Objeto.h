@@ -5,7 +5,8 @@
 
 struct Objeto {
     QString nombre;
-    QString tipo; // "cura", "buff", etc.
+    QString rareza;
+    QString tipo; // "poscion, revivir, etc"
     int cantidad;
     int valor; // efecto: cuánto cura, etc.
 

@@ -17,8 +17,17 @@ BattleWidget::BattleWidget(QWidget* parent)
     crearInterfaz();
     CargarAliados();
     MostrarAliados();
-    CargarEnemigos();
-    MostrarEnemigos();
+
+    //CargarEnemigos();
+    CargarEnemigos("slime");
+    //CargarEnemigos("ogros normales");
+    //CargarEnemigos("elite");
+    //CargarEnemigos("rider");
+    //CargarEnemigos("armored");
+
+
+
+    //MostrarEnemigos();
 
     updateTimer = new QTimer(this);
     connect(updateTimer, &QTimer::timeout, this, QOverload<>::of(&BattleWidget::update));
@@ -114,7 +123,7 @@ void BattleWidget::paintEvent(QPaintEvent*) {
         painter.setBrush(Qt::darkRed);
         painter.drawRect(vidaRect);
 
-        float vidaRatio = (float)e->getVidaActual() / e->getVidaMax(); // necesitas getVidaMax()
+        float vidaRatio = (float)e->getVidaActual() / e->getVidaMax();
         QRect vidaActualRect(pos.x(), pos.y() - 15, barWidth * vidaRatio, 5);
         painter.setBrush(Qt::green);
         painter.drawRect(vidaActualRect);
@@ -171,15 +180,52 @@ void BattleWidget::MostrarAliados() {
     }
 }
 
+//AQUI ESTA LA MAGIA --- Hacer MULTIPLES EVENTOS acorde a un parametro QString/ int futuro -- o una variable global, como sea
 void BattleWidget::CargarEnemigos() {
     enemigos.clear();
 
-    int cantidad = QRandomGenerator::global()->bounded(1, 3); // 1 a 2 enemigos
+    int cantidad = QRandomGenerator::global()->bounded(1, 4); // 1 a 3 enemigos
+
+    //SLIMES
     for (int i = 0; i < cantidad; ++i) {
         Slime* s = new Slime();
         enemigos.append(s);
     }
+
+    //Ogros
 }
+void BattleWidget::CargarEnemigos(const QString& tipo) {
+    enemigos.clear();
+
+    if (tipo == "slime") {
+        int cantidad = QRandomGenerator::global()->bounded(1, 4);
+        for (int i = 0; i < cantidad; ++i)
+            enemigos.append(new Slime());
+
+    } else if (tipo == "ogros normales") {
+        for (int i = 0; i < 3; ++i)
+            enemigos.append(new Ogro(Ogro::Normal));
+
+    } else if (tipo == "rider") {
+        enemigos.append(new Ogro(Ogro::Rider));
+        enemigos.append(new Ogro(Ogro::Rider));
+         enemigos.append(new Ogro(Ogro::Normal));
+
+    } else if (tipo == "armored") {
+        enemigos.append(new Ogro(Ogro::Armored));
+        enemigos.append(new Ogro(Ogro::Armored));
+         enemigos.append(new Ogro(Ogro::Normal));
+
+    } else if (tipo == "elite") {
+        enemigos.append(new Ogro(Ogro::Normal));
+        enemigos.append(new Ogro(Ogro::Elite));
+        enemigos.append(new Ogro(Ogro::Normal));
+
+    }
+
+    MostrarEnemigos();
+}
+
 
 void BattleWidget::MostrarEnemigos() {
     int startY = 100;
@@ -192,7 +238,7 @@ void BattleWidget::MostrarEnemigos() {
 void BattleWidget::accionSeleccionada(QString tipo) {
     if (faseActual != PLANIFICAR || indiceAliado >= aliados.size()) return;
 
-    // Evitar que personaje muerto actúe
+    // los muertos no actuan
     if (aliados[indiceAliado]->getVidaActual() == 0) {
         indiceAliado++;
         if (indiceAliado < aliados.size()) {
@@ -208,7 +254,7 @@ void BattleWidget::accionSeleccionada(QString tipo) {
 
     Personaje* personajeActual = aliados[indiceAliado];
 
-    // Elegir enemigo seleccionado o el primero si no hay uno
+    //Elegir objetivo: sino se elige ataca al de mas arriba
     Personaje* objetivo = (enemigoSeleccionado && enemigos.contains(enemigoSeleccionado))
                               ? enemigoSeleccionado
                               : (!enemigos.isEmpty() ? enemigos[0] : nullptr);

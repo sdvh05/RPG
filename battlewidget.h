@@ -10,6 +10,7 @@
 #include "Caballero.h"
 #include "Princesa.h"
 #include "Slime.h"
+#include "ogro.h"
 
 class BattleWidget : public QWidget {
     Q_OBJECT
@@ -58,7 +59,10 @@ private:
     QLabel* lblSeleccion;
     void CargarAliados();
     void MostrarAliados();
-    void CargarEnemigos();
+
+    void CargarEnemigos();//Prueba "vieja"
+    void CargarEnemigos(const QString& tipo); //A Futuro
+
     void MostrarEnemigos();
     void verificarVictoria();
 

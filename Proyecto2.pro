@@ -18,6 +18,7 @@ SOURCES += \
     inventario.cpp \
     main.cpp \
     mainwindow.cpp \
+    ogro.cpp \
     personaje.cpp \
     princesa.cpp \
     skilltreeviewer.cpp \
@@ -33,6 +34,7 @@ HEADERS += \
     curandera.h \
     inventario.h \
     mainwindow.h \
+    ogro.h \
     personaje.h \
     princesa.h \
     skilltreeviewer.h \
