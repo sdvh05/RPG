@@ -8,10 +8,15 @@
 #include "Curandera.h"
 #include "BattleWidget.h"
 
+#include "grafomapavisual.h"
+
 
 #include <QApplication>
 #include <QPixmap>
 #include <QDebug>
+#include <QLabel>
+#include <QStatusBar>
+#include <QMainWindow>
 
 int main(int argc, char *argv[])
 {
@@ -35,11 +40,16 @@ int main(int argc, char *argv[])
 */
 
    // QApplication a(argc, argv);
-    BattleWidget w;
-    w.show();
+    //BattleWidget w;
+    //w.show();
+    //return a.exec();
+
+
+
+//-----------------------------------
+    MapaWidget mapa;
+    mapa.show();
     return a.exec();
-
-
 
     return 0;
 }

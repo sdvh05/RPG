@@ -43,7 +43,8 @@ Ogro::Ogro(TipoOgro tipo)
     case Elite:
         nombre = "Ogro Elite";
         vidaMax = vidaActual = 200;
-        ataque = 25;
+        //ataque = 25;
+        ataque = 150;
 
         agregarAnimacion("idle",   cargarDesdeSpritesheet(rutaBase + "Elite Orc-Idle.png",   100, 100, 6), true);
         agregarAnimacion("attack", cargarDesdeSpritesheet(rutaBase + "Elite Orc-Attack01.png", 100, 100, 6), false);

@@ -23,6 +23,7 @@ Princesa::Princesa()
     // Cargar animaciones desde spritesheets
     agregarAnimacion("idle",   cargarDesdeSpritesheet("Personajes/Aliados/Princesa/Swordsman-Idle.png",   100, 100, 6));
     agregarAnimacion("attack", cargarDesdeSpritesheet("Personajes/Aliados/Princesa/Swordsman-Attack01.png", 100, 100, 6));
+    agregarAnimacion("especial", cargarDesdeSpritesheet("Personajes/Aliados/Princesa/Swordsman-Attack02.png", 100, 100, 6));
     agregarAnimacion("hurt",   cargarDesdeSpritesheet("Personajes/Aliados/Princesa/Swordsman-Hurt.png",   100, 100, 6));
     agregarAnimacion("death",   cargarDesdeSpritesheet("Personajes/Aliados/Princesa/Swordsman-Death.png",   100, 100, 6));
 
@@ -34,29 +35,20 @@ Princesa::Princesa()
 }
 
 void Princesa::ataqueEspecial(std::vector<Personaje*>&, std::vector<Personaje*>& enemigos) {
-    if (enemigos.empty()) return;
-    NodoSkill* base = arbol->getRaiz();
+    if (manaActual >= 15) {
+        //setEstado("especial");
 
-    int danio = ataque;
-    bool critico = false;
+        int danio = ataque * 0.5;
+        for (auto enemigo : enemigos) {
+            if (enemigo->getVidaActual() > 0) {
+                enemigo->recibirDanio(danio);
+                qDebug() << nombre << " golpea a " << enemigo->getNombre() << " con ataque grupal de " << danio;
+            }
+        }
 
-    if (base->izquierda && base->izquierda->desbloqueado)
-        danio += base->izquierda->danioExtra;
-
-    if (base->derecha && base->derecha->desbloqueado && (std::rand() % 100 < 20))
-        critico = true;
-
-    if (base->izquierda && base->izquierda->izquierda && base->izquierda->izquierda->desbloqueado)
-        danio += base->izquierda->izquierda->danioExtra;
-
-    if (critico) danio *= 2;
-
-    Personaje* objetivo = enemigos.front();
-    objetivo->recibirDanio(danio);
-    objetivo->recibirDanio(danio);
-
-    usarMana(10);
-    qDebug() << nombre << " ataca dos veces a" << objetivo->getNombre() << "con" << danio << "de daño" << (critico ? "(Crítico!)" : "");
-
-
+        usarMana(15);
+    } else {
+        qDebug() << nombre << " no tiene suficiente maná para su especial.";
+    }
 }
+

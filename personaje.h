@@ -43,6 +43,7 @@ public:
     int getAtaque()const;
     int getVidaActual() const;
     int getManaActual() const;
+    int getManaMax()const;
     int getNivel() const;
     int getDefensa() const;
     void aumentarDefensa(int cantidad);
@@ -52,6 +53,7 @@ public:
 
 
     void recibirDanio(int cantidad);
+    virtual void ataqueEspecial(std::vector<Personaje*>& aliados, std::vector<Personaje*>& enemigos);
     void restaurarVida(int cantidad);
     void usarMana(int cantidad);
 

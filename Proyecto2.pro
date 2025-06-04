@@ -15,6 +15,8 @@ SOURCES += \
     battlewidget.cpp \
     caballero.cpp \
     curandera.cpp \
+    grafomapa.cpp \
+    grafomapavisual.cpp \
     inventario.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -32,6 +34,8 @@ HEADERS += \
     battlewidget.h \
     caballero.h \
     curandera.h \
+    grafomapa.h \
+    grafomapavisual.h \
     inventario.h \
     mainwindow.h \
     ogro.h \

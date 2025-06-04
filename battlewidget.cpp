@@ -10,7 +10,7 @@
 
 
 BattleWidget::BattleWidget(QWidget* parent)
-    : QWidget(parent), fondo("Personajes/pruebaF.jpeg")
+    : QWidget(parent), /*fondo("Personajes/pruebaF.jpeg")*/fondo("Personajes/MapasCombate/BosqueJS.png")
 {
     setFixedSize(800, 480);
 
@@ -18,10 +18,11 @@ BattleWidget::BattleWidget(QWidget* parent)
     CargarAliados();
     MostrarAliados();
 
+
     //CargarEnemigos();
-    CargarEnemigos("slime");
+    //CargarEnemigos("slime");
     //CargarEnemigos("ogros normales");
-    //CargarEnemigos("elite");
+    CargarEnemigos("elite");
     //CargarEnemigos("rider");
     //CargarEnemigos("armored");
 
@@ -84,7 +85,7 @@ void BattleWidget::paintEvent(QPaintEvent*) {
 
         // Nombre
         painter.setPen(Qt::white);
-        painter.drawText(pos.x(), pos.y() - 5, p->getNombre());
+        painter.drawText(pos.x(), pos.y() - 22, p->getNombre());
 
         // Barra de vida
         int barWidth = pos.width();
@@ -92,12 +93,19 @@ void BattleWidget::paintEvent(QPaintEvent*) {
         painter.setBrush(Qt::darkRed);
         painter.drawRect(vidaRect);
 
-        float vidaRatio = (float)p->getVidaActual() / p->getVidaMax(); // necesitas getVidaMax()
+        float vidaRatio = (float)p->getVidaActual() / p->getVidaMax();
         QRect vidaActualRect(pos.x(), pos.y() - 15, barWidth * vidaRatio, 5);
         painter.setBrush(Qt::green);
         painter.drawRect(vidaActualRect);
 
+        //MANA
+        int manaMax = p->getManaMax();
+        int manaActual = p->getManaActual();
+        float manaRatio = (float)manaActual / manaMax;
 
+        QRect manaRect(pos.x(), pos.y() - 8, barWidth, 4);
+        painter.setBrush(Qt::blue);
+        painter.drawRect(manaRect.adjusted(0, 0, -barWidth * (1 - manaRatio), 0));
     }
 
     //Enemigos
@@ -115,7 +123,7 @@ void BattleWidget::paintEvent(QPaintEvent*) {
         }
 
         painter.setPen(Qt::white);
-        painter.drawText(pos.x(), pos.y() - 5, e->getNombre());
+        painter.drawText(pos.x(), pos.y() - 22, e->getNombre());
 
         // Barra de vida
         int barWidth = pos.width();
@@ -242,8 +250,8 @@ void BattleWidget::accionSeleccionada(QString tipo) {
     if (aliados[indiceAliado]->getVidaActual() == 0) {
         indiceAliado++;
         if (indiceAliado < aliados.size()) {
-            actualizarColorBotones(aliados[indiceAliado]->getNombre());
             lblSeleccion->setText("¿Qué hará " + aliados[indiceAliado]->getNombre() + "?");
+            actualizarColorBotones(aliados[indiceAliado]->getNombre());
         } else {
             faseActual = EJECUTAR;
             lblSeleccion->hide();
@@ -253,6 +261,7 @@ void BattleWidget::accionSeleccionada(QString tipo) {
     }
 
     Personaje* personajeActual = aliados[indiceAliado];
+    actualizarColorBotones(personajeActual->getNombre());
 
     //Elegir objetivo: sino se elige ataca al de mas arriba
     Personaje* objetivo = (enemigoSeleccionado && enemigos.contains(enemigoSeleccionado))
@@ -305,7 +314,7 @@ void BattleWidget::actualizarColorBotones(const QString& nombrePersonaje) {
 
 void BattleWidget::ejecutarAccionesAliadas() {
     setBotonesHabilitados(false);
-    verificarVictoria();
+    //verificarVictoria();
 
     if (accionesAliados.isEmpty()) return;
 
@@ -336,11 +345,14 @@ void BattleWidget::ejecutarAccionesAliadas() {
                 accion.objetivo->recibirDanio(accion.actor->getAtaque());
                 qDebug() << accion.actor->getNombre() << " ataca a " << accion.objetivo->getNombre();
                 accion.actor->setEstado("attack");
+                eliminarMuertos();
             }
         } else if (accion.tipo == "especial") {
-            accion.objetivo->recibirDanio(accion.actor->getAtaque());
-            qDebug() << accion.actor->getNombre() << "usa su ataque especial " ;
+            std::vector<Personaje*> aliadosVector(aliados.begin(), aliados.end());
+            std::vector<Personaje*> enemigosVector(enemigos.begin(), enemigos.end());
+            accion.actor->ataqueEspecial(aliadosVector, enemigosVector);
             accion.actor->setEstado("especial");
+            eliminarMuertos();
         }
 
         update();
@@ -353,8 +365,8 @@ void BattleWidget::ejecutarAccionesAliadas() {
 }
 
 void BattleWidget::ejecutarTurnoEnemigos() {
-     verificarVictoria();
-    eliminarMuertos();
+     //eliminarMuertos();
+     //verificarVictoria();
     QTimer* timer = new QTimer(this);
     int index = 0;
 
@@ -365,11 +377,14 @@ void BattleWidget::ejecutarTurnoEnemigos() {
             indiceAliado = 0;
             setBotonesHabilitados(true);
             eliminarMuertos();
+            verificarVictoria();
 
             if (!aliados.isEmpty()) {
                 lblSeleccion->show();
                 lblSeleccion->setText("¿Qué hará " + aliados[0]->getNombre() + "?");
+                actualizarColorBotones(aliados[0]->getNombre());
             }
+
 
             return;
         }
@@ -382,11 +397,14 @@ void BattleWidget::ejecutarTurnoEnemigos() {
             qDebug() << enemigo->getNombre() << " ataca a " << objetivo->getNombre();
         }
 
+        //eliminarMuertos();
+        //verificarVictoria();
+
         update();
 
     });
 
-    verificarVictoria();
+
     timer->start(1000);
 }
 
@@ -424,23 +442,22 @@ void BattleWidget::mousePressEvent(QMouseEvent* event) {
 void BattleWidget::verificarVictoria() {
     qDebug() << "Verificando victoria... Enemigos:" << enemigos.size() << " Aliados:" << aliados.size();
 
-    int enemigosIniciales = enemigos.size();
-    int aliadosIniciales = aliados.size();
+    bool enemigosDerrotados = enemigos.isEmpty() ||
+                              std::all_of(enemigos.begin(), enemigos.end(), [](Personaje* p) {
+                                  return p->getVidaActual() <= 0;
+                              });
 
-    bool enemigosMuertos = std::all_of(enemigos.begin(), enemigos.end(), [](Personaje* p) {
-        return p->getVidaActual() <= 0;
-    });
+    bool aliadosDerrotados = aliados.isEmpty() ||
+                             std::all_of(aliados.begin(), aliados.end(), [](Personaje* p) {
+                                 return p->getVidaActual() <= 0;
+                             });
 
-    bool aliadosMuertos = std::all_of(aliados.begin(), aliados.end(), [](Personaje* p) {
-        return p->getVidaActual() <= 0;
-    });
-
-    if (enemigosMuertos && enemigosIniciales > 0) {
+    if (enemigosDerrotados) {
         QMessageBox::information(this, "¡Victoria!", "¡Has derrotado a todos los enemigos!");
         setBotonesHabilitados(false);
         lblSeleccion->hide();
         faseActual = ESPERA;
-    } else if (aliadosMuertos && aliadosIniciales > 0) {
+    } else if (aliadosDerrotados) {
         QMessageBox::critical(this, "Derrota", "Todos tus personajes han sido derrotados...");
         setBotonesHabilitados(false);
         lblSeleccion->hide();
@@ -448,7 +465,13 @@ void BattleWidget::verificarVictoria() {
     }
 
 
+
+
 }
+
+
+
+
 
 
 

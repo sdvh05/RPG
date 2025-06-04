@@ -19,6 +19,7 @@ Personaje::~Personaje() {
 QString Personaje::getNombre() const { return nombre; }
 int Personaje::getVidaActual() const { return vidaActual; }
 int Personaje::getManaActual() const { return manaActual; }
+int Personaje::getManaMax()const {return manaMax;}
 int Personaje::getNivel() const { return nivel; }
 bool Personaje::esAliadoPersonaje() const { return esAliado; }
 
@@ -70,6 +71,9 @@ void Personaje::recibirDanio(int cantidad) {
     }
 }
 
+void Personaje::ataqueEspecial(std::vector<Personaje*>&, std::vector<Personaje*>&) {
+    qDebug() << nombre << " no tiene ataque especial.";
+}
 
 
 void Personaje::actualizarAnimacion() {
