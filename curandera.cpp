@@ -22,6 +22,7 @@ Curandera::Curandera()
     agregarAnimacion("especial",  cargarDesdeSpritesheet("Personajes/Aliados/Curandera/Priest-Heal.png",   100, 100, 6), false);
     agregarAnimacion("hurt",   cargarDesdeSpritesheet("Personajes/Aliados/Curandera/Priest-Hurt.png",   100, 100, 6), false);
     agregarAnimacion("death",  cargarDesdeSpritesheet("Personajes/Aliados/Curandera/Priest-Death.png",  100, 100, 6), false);
+    agregarAnimacion("walk",  cargarDesdeSpritesheet("Personajes/Aliados/Curandera/Priest-Walk.png",  100, 100, 6), false);
 
     setEstado("idle");
 

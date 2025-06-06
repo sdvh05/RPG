@@ -16,6 +16,8 @@ Ogro::Ogro(TipoOgro tipo)
         agregarAnimacion("attack", cargarDesdeSpritesheet(rutaBase + "Orc-Attack01.png", 100, 100, 6), false);
         agregarAnimacion("hurt",   cargarDesdeSpritesheet(rutaBase + "Orc-Hurt.png",   100, 100, 6), false);
         agregarAnimacion("death",  cargarDesdeSpritesheet(rutaBase + "Orc-Death.png",  100, 100, 6), false);
+        agregarAnimacion("idle",   cargarDesdeSpritesheet(rutaBase + "Orc-Idle.png",   100, 100, 6), true);
+        agregarAnimacion("walk",   cargarDesdeSpritesheet(rutaBase + "Orc-Walk.png",   100, 100, 6), true);
         break;
 
     case Rider:
@@ -27,6 +29,7 @@ Ogro::Ogro(TipoOgro tipo)
         agregarAnimacion("attack", cargarDesdeSpritesheet(rutaBase + "Orc rider-Attack01.png", 100, 100, 6), false);
         agregarAnimacion("hurt",   cargarDesdeSpritesheet(rutaBase + "Orc rider-Hurt.png",   100, 100, 6), false);
         agregarAnimacion("death",  cargarDesdeSpritesheet(rutaBase + "Orc rider-Death.png",  100, 100, 6), false);
+        agregarAnimacion("walk",   cargarDesdeSpritesheet(rutaBase + "Orc rider-Walk.png",   100, 100, 6), true);
         break;
 
     case Armored:
@@ -38,6 +41,7 @@ Ogro::Ogro(TipoOgro tipo)
         agregarAnimacion("attack", cargarDesdeSpritesheet(rutaBase + "Armored Orc-Attack01.png", 100, 100, 6), false);
         agregarAnimacion("hurt",   cargarDesdeSpritesheet(rutaBase + "Armored Orc-Hurt.png",   100, 100, 6), false);
         agregarAnimacion("death",  cargarDesdeSpritesheet(rutaBase + "Armored Orc-Death.png",  100, 100, 6), false);
+        agregarAnimacion("walk",   cargarDesdeSpritesheet(rutaBase + "Armored Orc-Walk.png",   100, 100, 6), true);
         break;
 
     case Elite:
@@ -50,6 +54,7 @@ Ogro::Ogro(TipoOgro tipo)
         agregarAnimacion("attack", cargarDesdeSpritesheet(rutaBase + "Elite Orc-Attack01.png", 100, 100, 6), false);
         agregarAnimacion("hurt",   cargarDesdeSpritesheet(rutaBase + "Elite Orc-Hurt.png",   100, 100, 6), false);
         agregarAnimacion("death",  cargarDesdeSpritesheet(rutaBase + "Elite Orc-Death.png",  100, 100, 6), false);
+        agregarAnimacion("idle",   cargarDesdeSpritesheet(rutaBase + "Elite Orc-Walk.png",   100, 100, 6), true);
         break;
     }
 

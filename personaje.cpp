@@ -111,7 +111,15 @@ QPixmap Personaje::getFrameActual() const {
 
 void Personaje::setPosicion(QRect rect) {
     posicionPantalla = rect;
+    if (posicionOriginal.isNull()) {
+        posicionOriginal = rect;
+    }
 }
+
+void Personaje::setPosicionOriginal(QRect rect) {
+    posicionOriginal = rect;
+}
+
 
 QRect Personaje::getPosicion() const {
     return posicionPantalla;

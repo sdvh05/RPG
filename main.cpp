@@ -40,8 +40,8 @@ int main(int argc, char *argv[])
 */
 
    // QApplication a(argc, argv);
-    //BattleWidget w;
-    //w.show();
+    BattleWidget w;
+    w.show();
     //return a.exec();
 
 

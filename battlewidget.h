@@ -37,6 +37,9 @@ public:
     int indiceAliado;
     QVector<AccionPlanificada> accionesAliados;
     void mousePressEvent(QMouseEvent* event) override;
+    Personaje* obtenerObjetivoVivo(bool esEnemigo);
+    void setFondo(const QString& ruta);
+
 
 
 
@@ -70,6 +73,11 @@ private:
     void accionSeleccionada(QString tipo);
     void ejecutarAccionesAliadas();
     void ejecutarTurnoEnemigos();
+
+    void CaminarParaAtacar(Personaje* atacante, Personaje* objetivo, std::function<void()> onFinalizado);
+    void CaminarDeVuelta(Personaje* personaje, std::function<void()> onFinalizado);
+
+
     void setBotonesHabilitados(bool habilitado);
     void eliminarMuertos();
     void actualizarColorBotones(const QString& nombrePersonaje);

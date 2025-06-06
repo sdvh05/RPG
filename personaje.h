@@ -34,6 +34,7 @@ protected:
     QTimer* animTimer;
     QRect posicionPantalla;
     int escala = 12;
+    QRect posicionOriginal;
 
 public:
     Personaje(QString nombre, int vida, int mana, int ataque, bool aliado);
@@ -50,6 +51,9 @@ public:
     void resetearDefensa();
     bool esAliadoPersonaje() const;
     int getVidaMax() const { return vidaMax; }
+    QRect getPosicionOriginal() const { return posicionOriginal; }
+    void setPosicionOriginal(QRect rect);
+
 
 
     void recibirDanio(int cantidad);

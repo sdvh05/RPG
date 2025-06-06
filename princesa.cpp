@@ -26,6 +26,7 @@ Princesa::Princesa()
     agregarAnimacion("especial", cargarDesdeSpritesheet("Personajes/Aliados/Princesa/Swordsman-Attack02.png", 100, 100, 6));
     agregarAnimacion("hurt",   cargarDesdeSpritesheet("Personajes/Aliados/Princesa/Swordsman-Hurt.png",   100, 100, 6));
     agregarAnimacion("death",   cargarDesdeSpritesheet("Personajes/Aliados/Princesa/Swordsman-Death.png",   100, 100, 6));
+    agregarAnimacion("walk",   cargarDesdeSpritesheet("Personajes/Aliados/Princesa/Swordsman-Walk.png",   100, 100, 6));
 
     connect(this, &Personaje::animacionTerminada, this, [=](QString estado){
         if (estado == "attack" || estado == "especial" || estado=="hurt") {

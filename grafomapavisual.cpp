@@ -44,9 +44,10 @@ void MapaWidget::inicializarGrafo()
 
 
 
+
     // Conexiones condicionales (explorador)
     grafo.agregarConexion("Castillo Java", "Castillo Codigo", 46, false);
-    //grafo.activarConexionCondicional("Castillo Java", "Castillo Codigo");
+    grafo.activarConexionCondicional("Castillo Java", "Castillo Codigo");
 
 }
 

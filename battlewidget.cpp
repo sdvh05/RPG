@@ -19,12 +19,15 @@ BattleWidget::BattleWidget(QWidget* parent)
     MostrarAliados();
 
 
+
     //CargarEnemigos();
     //CargarEnemigos("slime");
-    //CargarEnemigos("ogros normales");
-    CargarEnemigos("elite");
+    CargarEnemigos("ogros normales");
+    //CargarEnemigos("elite");
     //CargarEnemigos("rider");
     //CargarEnemigos("armored");
+
+    //setFondo("Personajes/MapasCombate/BosqueJS.png");
 
 
 
@@ -48,6 +51,16 @@ BattleWidget::BattleWidget(QWidget* parent)
 BattleWidget::~BattleWidget() {
     for (Personaje* p : aliados) delete p;
     for (Personaje* e : enemigos) delete e;
+}
+
+void BattleWidget::setFondo(const QString& ruta) {
+    QPixmap nuevoFondo(ruta);
+    if (nuevoFondo.isNull()) {
+        qWarning() << "No se pudo cargar el fondo:" << ruta;
+        return;
+    }
+    fondo = nuevoFondo;
+    update();
 }
 
 
@@ -188,6 +201,14 @@ void BattleWidget::MostrarAliados() {
     }
 }
 
+void BattleWidget::MostrarEnemigos() {
+    int startY = 100;
+    for (int i = 0; i < enemigos.size(); ++i) {
+        QRect pos(640, startY + i * 100, 64, 64);
+        enemigos[i]->setPosicion(pos);
+    }
+}
+
 //AQUI ESTA LA MAGIA --- Hacer MULTIPLES EVENTOS acorde a un parametro QString/ int futuro -- o una variable global, como sea
 void BattleWidget::CargarEnemigos() {
     enemigos.clear();
@@ -235,13 +256,7 @@ void BattleWidget::CargarEnemigos(const QString& tipo) {
 }
 
 
-void BattleWidget::MostrarEnemigos() {
-    int startY = 100;
-    for (int i = 0; i < enemigos.size(); ++i) {
-        QRect pos(640, startY + i * 100, 64, 64);
-        enemigos[i]->setPosicion(pos);
-    }
-}
+
 
 void BattleWidget::accionSeleccionada(QString tipo) {
     if (faseActual != PLANIFICAR || indiceAliado >= aliados.size()) return;
@@ -314,38 +329,46 @@ void BattleWidget::actualizarColorBotones(const QString& nombrePersonaje) {
 
 void BattleWidget::ejecutarAccionesAliadas() {
     setBotonesHabilitados(false);
-    //verificarVictoria();
-
     if (accionesAliados.isEmpty()) return;
 
-
-
+    int* index = new int(0);
     QTimer* timer = new QTimer(this);
-    int index = 0;
 
     connect(timer, &QTimer::timeout, this, [=]() mutable {
-        if (index >= accionesAliados.size()) {
+        if (*index >= accionesAliados.size()) {
             timer->stop();
-            faseActual = ENEMIGOS;
+            delete index;
             accionesAliados.clear();
+            faseActual = ENEMIGOS;
             ejecutarTurnoEnemigos();
             return;
         }
 
-        AccionPlanificada accion = accionesAliados[index++];
+        AccionPlanificada accion = accionesAliados[*index];
 
         if (accion.actor->getVidaActual() == 0) {
-            index++;
+            (*index)++;
             return;
         }
 
-
         if (accion.tipo == "atacar") {
-            if (accion.objetivo) {
-                accion.objetivo->recibirDanio(accion.actor->getAtaque());
-                qDebug() << accion.actor->getNombre() << " ataca a " << accion.objetivo->getNombre();
-                accion.actor->setEstado("attack");
-                eliminarMuertos();
+            Personaje* objetivo = accion.objetivo;
+            if (!objetivo || objetivo->getVidaActual() == 0)
+                objetivo = obtenerObjetivoVivo(true);
+
+            if (objetivo) {
+                timer->stop();
+
+                CaminarParaAtacar(accion.actor, objetivo, [=]() mutable {
+                    eliminarMuertos();
+                    update();
+                    (*index)++;
+                    timer->start(100);
+                });
+
+                return;
+            } else {
+                (*index)++;
             }
         } else if (accion.tipo == "especial") {
             std::vector<Personaje*> aliadosVector(aliados.begin(), aliados.end());
@@ -353,26 +376,24 @@ void BattleWidget::ejecutarAccionesAliadas() {
             accion.actor->ataqueEspecial(aliadosVector, enemigosVector);
             accion.actor->setEstado("especial");
             eliminarMuertos();
+            update();
+            (*index)++;
         }
 
-        update();
     });
 
-    eliminarMuertos();
-    verificarVictoria();
-
-    timer->start(1000);
+    timer->start(100);
 }
 
+
 void BattleWidget::ejecutarTurnoEnemigos() {
-     //eliminarMuertos();
-     //verificarVictoria();
+    int* index = new int(0);
     QTimer* timer = new QTimer(this);
-    int index = 0;
 
     connect(timer, &QTimer::timeout, this, [=]() mutable {
-        if (index >= enemigos.size()) {
+        if (*index >= enemigos.size()) {
             timer->stop();
+            delete index;
             faseActual = PLANIFICAR;
             indiceAliado = 0;
             setBotonesHabilitados(true);
@@ -385,28 +406,47 @@ void BattleWidget::ejecutarTurnoEnemigos() {
                 actualizarColorBotones(aliados[0]->getNombre());
             }
 
-
             return;
         }
 
-        Personaje* enemigo = enemigos[index++];
-        if (!aliados.isEmpty()) {
-            Personaje* objetivo = aliados[rand() % aliados.size()];
-            objetivo->recibirDanio(enemigo->getAtaque());
-            enemigo->setEstado("attack");
-            qDebug() << enemigo->getNombre() << " ataca a " << objetivo->getNombre();
+        Personaje* enemigo = enemigos[*index];
+        QVector<Personaje*> vivos;
+        for (Personaje* a : aliados)
+            if (a->getVidaActual() > 0)
+                vivos.append(a);
+
+        if (!vivos.isEmpty()) {
+            int randIndex = QRandomGenerator::global()->bounded(vivos.size());
+            Personaje* objetivo = vivos[randIndex];
+
+            timer->stop();
+
+            CaminarParaAtacar(enemigo, objetivo, [=]() mutable {
+                eliminarMuertos();
+                update();
+                (*index)++;
+                timer->start(100);
+            });
+
+            return;
+        } else {
+            (*index)++;
         }
-
-        //eliminarMuertos();
-        //verificarVictoria();
-
-        update();
-
     });
 
-
-    timer->start(1000);
+    timer->start(100);
 }
+
+
+Personaje* BattleWidget::obtenerObjetivoVivo(bool esEnemigo) {
+    const auto& lista = esEnemigo ? enemigos : aliados;
+    for (Personaje* p : lista) {
+        if (p->getVidaActual() > 0)
+            return p;
+    }
+    return nullptr;
+}
+
 
 void BattleWidget::eliminarMuertos() {
     aliados.erase(std::remove_if(aliados.begin(), aliados.end(),
@@ -464,10 +504,81 @@ void BattleWidget::verificarVictoria() {
         faseActual = ESPERA;
     }
 
-
-
-
 }
+
+
+void BattleWidget::CaminarParaAtacar(Personaje* atacante, Personaje* objetivo, std::function<void()> onFinalizado) {
+    if (!atacante || !objetivo) {
+        if (onFinalizado) onFinalizado();
+        return;
+    }
+
+    QPoint origen = atacante->getPosicion().topLeft();
+    QPoint destino = objetivo->getPosicion().topLeft();
+
+    int offset = atacante->esAliadoPersonaje() ? +60 : -60;
+    QPoint puntoObjetivo(destino.x() - offset, destino.y());
+
+    QRect rectDestino(puntoObjetivo, atacante->getPosicion().size());
+
+    atacante->setEstado("walk");
+
+    QTimer* mover = new QTimer(this);
+    connect(mover, &QTimer::timeout, this, [=]() mutable {
+        QRect actual = atacante->getPosicion();
+        int dx = (rectDestino.x() - actual.x()) / 5;
+        int dy = (rectDestino.y() - actual.y()) / 5;
+
+        if (abs(dx) < 2 && abs(dy) < 2) {
+            atacante->setPosicion(rectDestino);
+            mover->stop();
+
+            atacante->setEstado("attack");
+            objetivo->recibirDanio(atacante->getAtaque());
+            update();
+
+            QTimer::singleShot(400, this, [=]() {
+                CaminarDeVuelta(atacante, onFinalizado);
+            });
+
+        } else {
+            QRect nuevo(actual.x() + dx, actual.y() + dy, actual.width(), actual.height());
+            atacante->setPosicion(nuevo);
+        }
+
+        update();
+    });
+
+    mover->start(40);
+}
+
+void BattleWidget::CaminarDeVuelta(Personaje* personaje, std::function<void()> onFinalizado) {
+    personaje->setEstado("walk");
+    QRect destino = personaje->getPosicionOriginal();
+    QTimer* mover = new QTimer(this);
+
+    connect(mover, &QTimer::timeout, this, [=]() mutable {
+        QRect actual = personaje->getPosicion();
+        int dx = (destino.x() - actual.x()) / 5;
+        int dy = (destino.y() - actual.y()) / 5;
+
+        if (abs(dx) < 2 && abs(dy) < 2) {
+            personaje->setPosicion(destino);
+            mover->stop();
+            personaje->setEstado("idle");
+            if (onFinalizado) onFinalizado();
+        } else {
+            QRect nuevo(actual.x() + dx, actual.y() + dy, actual.width(), actual.height());
+            personaje->setPosicion(nuevo);
+        }
+
+        update();
+    });
+
+    mover->start(40);
+}
+
+
 
 
 
