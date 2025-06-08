@@ -11,6 +11,7 @@
 #include "Princesa.h"
 #include "Slime.h"
 #include "ogro.h"
+#include "EfectoVisual.h"
 
 class BattleWidget : public QWidget {
     Q_OBJECT
@@ -39,6 +40,9 @@ public:
     void mousePressEvent(QMouseEvent* event) override;
     Personaje* obtenerObjetivoVivo(bool esEnemigo);
     void setFondo(const QString& ruta);
+    QList<EfectoVisual*> efectosVisuales;
+    void mostrarEfectoCuracion(Personaje* objetivo);
+
 
 
 
@@ -81,7 +85,7 @@ private:
     void setBotonesHabilitados(bool habilitado);
     void eliminarMuertos();
     void actualizarColorBotones(const QString& nombrePersonaje);
-    Personaje* enemigoSeleccionado = nullptr; // a quien atacar
+    Personaje* enemigoSeleccionado = nullptr;  //puntero objetico
 
 
 protected:

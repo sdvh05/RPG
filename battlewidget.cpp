@@ -119,6 +119,13 @@ void BattleWidget::paintEvent(QPaintEvent*) {
         QRect manaRect(pos.x(), pos.y() - 8, barWidth, 4);
         painter.setBrush(Qt::blue);
         painter.drawRect(manaRect.adjusted(0, 0, -barWidth * (1 - manaRatio), 0));
+
+        for (EfectoVisual* efecto : efectosVisuales) {
+            if (!efecto->sprite.isNull()) {
+                painter.drawPixmap(efecto->posicion, efecto->sprite);
+            }
+        }
+
     }
 
     //Enemigos
@@ -339,6 +346,7 @@ void BattleWidget::ejecutarAccionesAliadas() {
             timer->stop();
             delete index;
             accionesAliados.clear();
+            eliminarMuertos(); // ← limpiar los muertos finales antes de turno enemigo
             faseActual = ENEMIGOS;
             ejecutarTurnoEnemigos();
             return;
@@ -346,8 +354,10 @@ void BattleWidget::ejecutarAccionesAliadas() {
 
         AccionPlanificada accion = accionesAliados[*index];
 
+        // Si el actor murió antes de actuar, omitirlo
         if (accion.actor->getVidaActual() == 0) {
             (*index)++;
+            eliminarMuertos(); // ← aseguramos limpieza de cadáveres
             return;
         }
 
@@ -357,10 +367,10 @@ void BattleWidget::ejecutarAccionesAliadas() {
                 objetivo = obtenerObjetivoVivo(true);
 
             if (objetivo) {
-                timer->stop();
+                timer->stop(); // detener temporizador antes del movimiento
 
                 CaminarParaAtacar(accion.actor, objetivo, [=]() mutable {
-                    eliminarMuertos();
+                    eliminarMuertos(); // ← después del daño, eliminar si muere
                     update();
                     (*index)++;
                     timer->start(100);
@@ -369,24 +379,67 @@ void BattleWidget::ejecutarAccionesAliadas() {
                 return;
             } else {
                 (*index)++;
+                eliminarMuertos(); // ← si no hay objetivo válido
             }
-        } else if (accion.tipo == "especial") {
+        }
+
+        else if (accion.tipo == "especial") {
             std::vector<Personaje*> aliadosVector(aliados.begin(), aliados.end());
             std::vector<Personaje*> enemigosVector(enemigos.begin(), enemigos.end());
-            accion.actor->ataqueEspecial(aliadosVector, enemigosVector);
-            accion.actor->setEstado("especial");
+
+            if (accion.actor->getNombre().contains("Caballero", Qt::CaseInsensitive) ||
+                accion.actor->getNombre().contains("Princesa", Qt::CaseInsensitive)) {
+
+                Personaje* objetivo = obtenerObjetivoVivo(true);
+                if (objetivo) {
+                    timer->stop();
+
+                    CaminarParaAtacar(accion.actor, objetivo, [=]() mutable {
+                        accion.actor->ataqueEspecial(aliadosVector, enemigosVector);
+                        eliminarMuertos(); // ← luego del especial
+                        update();
+                        (*index)++;
+                        timer->start(100);
+                    });
+
+                    return;
+                } else {
+                    (*index)++;
+                    eliminarMuertos(); // ← no hay enemigo vivo
+                }
+            }
+
+            else if (accion.actor->getNombre().contains("Curandera", Qt::CaseInsensitive)) {
+                // Curandera no se mueve, solo cura
+                accion.actor->ataqueEspecial(aliadosVector, enemigosVector);
+                accion.actor->setEstado("especial");
+
+                for (Personaje* aliado : aliados) {
+                    if (aliado->getVidaActual() > 0 && aliado->esAliadoPersonaje()) {
+                        mostrarEfectoCuracion(aliado);
+                    }
+                }
+
+                eliminarMuertos();
+                update();
+                (*index)++;
+                return;
+            }
+
+            // Para otros especiales que no caminan
             eliminarMuertos();
             update();
             (*index)++;
         }
-
     });
 
     timer->start(100);
 }
 
 
+
 void BattleWidget::ejecutarTurnoEnemigos() {
+    eliminarMuertos();
     int* index = new int(0);
     QTimer* timer = new QTimer(this);
 
@@ -410,6 +463,13 @@ void BattleWidget::ejecutarTurnoEnemigos() {
         }
 
         Personaje* enemigo = enemigos[*index];
+
+        if (enemigo->getVidaActual() == 0) {
+            (*index)++;
+            eliminarMuertos();
+            return;
+        }
+
         QVector<Personaje*> vivos;
         for (Personaje* a : aliados)
             if (a->getVidaActual() > 0)
@@ -449,12 +509,24 @@ Personaje* BattleWidget::obtenerObjetivoVivo(bool esEnemigo) {
 
 
 void BattleWidget::eliminarMuertos() {
-    aliados.erase(std::remove_if(aliados.begin(), aliados.end(),
-                                 [](Personaje* p) { return p->getVidaActual() == 0; }), aliados.end());
+    for (Personaje* p : aliados + enemigos) {
+        if (p->getVidaActual() == 0 && p->getEstadoActual() != "death" && !p->estaMuriendo()) {
+            p->marcarMuriendo();
+            p->setEstado("death");
 
-    enemigos.erase(std::remove_if(enemigos.begin(), enemigos.end(),
-                                  [](Personaje* p) { return p->getVidaActual() == 0; }), enemigos.end());
+            connect(p, &Personaje::animacionTerminada, this, [=](QString estado) {
+                if (estado == "death") {
+                    aliados.removeOne(p);
+                    enemigos.removeOne(p);
+                    p->deleteLater();
+                    update();
+                }
+            });
+        }
+    }
 }
+
+
 
 void BattleWidget::setBotonesHabilitados(bool habilitado) {
     btnAtacar->setEnabled(habilitado);
@@ -472,7 +544,7 @@ void BattleWidget::mousePressEvent(QMouseEvent* event) {
     for (Personaje* enemigo : enemigos) {
         if (enemigo->getPosicion().contains(clickPos)) {
             enemigoSeleccionado = enemigo;
-            qDebug() << "Enemigo seleccionado:" << enemigoSeleccionado->getNombre();
+            qDebug() << "Enemigo seleccionado:" << enemigoSeleccionado->getNombre() << " "<<enemigoSeleccionado->getVidaActual();
             update();
             break;
         }
@@ -535,6 +607,7 @@ void BattleWidget::CaminarParaAtacar(Personaje* atacante, Personaje* objetivo, s
 
             atacante->setEstado("attack");
             objetivo->recibirDanio(atacante->getAtaque());
+            eliminarMuertos();
             update();
 
             QTimer::singleShot(400, this, [=]() {
@@ -576,6 +649,20 @@ void BattleWidget::CaminarDeVuelta(Personaje* personaje, std::function<void()> o
     });
 
     mover->start(40);
+}
+
+void BattleWidget::mostrarEfectoCuracion(Personaje* personaje) {
+    QList<QPixmap> frames = Aliado::cargarDesdeSpritesheet("Personajes/Aliados/Curandera/Priest-Heal_Effect.png", 100, 100, 4);
+
+    if (frames.isEmpty()) return;
+
+    QLabel* efecto = new QLabel(this);
+    efecto->setPixmap(frames[0]);
+    efecto->setGeometry(personaje->getPosicion().adjusted(10, 10, 20, 20));
+    efecto->show();
+
+    // Eliminar 1s
+    QTimer::singleShot(1000, efecto, &QLabel::deleteLater);
 }
 
 

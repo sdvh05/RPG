@@ -21,12 +21,12 @@ Princesa::Princesa()
 
 
     // Cargar animaciones desde spritesheets
-    agregarAnimacion("idle",   cargarDesdeSpritesheet("Personajes/Aliados/Princesa/Swordsman-Idle.png",   100, 100, 6));
-    agregarAnimacion("attack", cargarDesdeSpritesheet("Personajes/Aliados/Princesa/Swordsman-Attack01.png", 100, 100, 6));
-    agregarAnimacion("especial", cargarDesdeSpritesheet("Personajes/Aliados/Princesa/Swordsman-Attack02.png", 100, 100, 6));
-    agregarAnimacion("hurt",   cargarDesdeSpritesheet("Personajes/Aliados/Princesa/Swordsman-Hurt.png",   100, 100, 6));
-    agregarAnimacion("death",   cargarDesdeSpritesheet("Personajes/Aliados/Princesa/Swordsman-Death.png",   100, 100, 6));
-    agregarAnimacion("walk",   cargarDesdeSpritesheet("Personajes/Aliados/Princesa/Swordsman-Walk.png",   100, 100, 6));
+    agregarAnimacion("idle",   cargarDesdeSpritesheet("Personajes/Aliados/Princesa/Swordsman-Idle.png",   100, 100, 6),true);
+    agregarAnimacion("attack", cargarDesdeSpritesheet("Personajes/Aliados/Princesa/Swordsman-Attack01.png", 100, 100, 6),false);
+    agregarAnimacion("especial", cargarDesdeSpritesheet("Personajes/Aliados/Princesa/Swordsman-Attack02.png", 100, 100, 6),false);
+    agregarAnimacion("hurt",   cargarDesdeSpritesheet("Personajes/Aliados/Princesa/Swordsman-Hurt.png",   100, 100, 4),false);
+    agregarAnimacion("death",   cargarDesdeSpritesheet("Personajes/Aliados/Princesa/Swordsman-Death.png",   100, 100, 4),false);
+    agregarAnimacion("walk",   cargarDesdeSpritesheet("Personajes/Aliados/Princesa/Swordsman-Walk.png",   100, 100, 6),false);
 
     connect(this, &Personaje::animacionTerminada, this, [=](QString estado){
         if (estado == "attack" || estado == "especial" || estado=="hurt") {

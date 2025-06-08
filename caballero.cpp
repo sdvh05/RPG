@@ -18,8 +18,8 @@ Caballero::Caballero()
     // Cargar animaciones desde spritesheets
     agregarAnimacion("idle",   cargarDesdeSpritesheet("Personajes/Aliados/Caballero/Knight-Idle.png",   100, 100,6), true);
     agregarAnimacion("attack", cargarDesdeSpritesheet("Personajes/Aliados/Caballero/Knight-Attack01.png", 100, 100, 6), false);
-    agregarAnimacion("hurt",   cargarDesdeSpritesheet("Personajes/Aliados/Caballero/Knight-Hurt.png",   100, 100, 6), false);
-    agregarAnimacion("death",   cargarDesdeSpritesheet("Personajes/Aliados/Caballero/Knight-Death.png",   100, 100, 6), false);
+    agregarAnimacion("hurt",   cargarDesdeSpritesheet("Personajes/Aliados/Caballero/Knight-Hurt.png",   100, 100, 4), false);
+    agregarAnimacion("death",   cargarDesdeSpritesheet("Personajes/Aliados/Caballero/Knight-Death.png",   100, 100, 4), false);
     agregarAnimacion("walk",   cargarDesdeSpritesheet("Personajes/Aliados/Caballero/Knight-Walk.png",   100, 100, 6), true);
 
     setEstado("idle");

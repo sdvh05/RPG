@@ -20,8 +20,8 @@ Curandera::Curandera()
     agregarAnimacion("idle",   cargarDesdeSpritesheet("Personajes/Aliados/Curandera/Priest-Idle.png",   100, 100, 6), true);
     agregarAnimacion("attack", cargarDesdeSpritesheet("Personajes/Aliados/Curandera/Priest-Attack.png", 100, 100, 6), false);
     agregarAnimacion("especial",  cargarDesdeSpritesheet("Personajes/Aliados/Curandera/Priest-Heal.png",   100, 100, 6), false);
-    agregarAnimacion("hurt",   cargarDesdeSpritesheet("Personajes/Aliados/Curandera/Priest-Hurt.png",   100, 100, 6), false);
-    agregarAnimacion("death",  cargarDesdeSpritesheet("Personajes/Aliados/Curandera/Priest-Death.png",  100, 100, 6), false);
+    agregarAnimacion("hurt",   cargarDesdeSpritesheet("Personajes/Aliados/Curandera/Priest-Hurt.png",   100, 100, 4), false);
+    agregarAnimacion("death",  cargarDesdeSpritesheet("Personajes/Aliados/Curandera/Priest-Death.png",  100, 100, 4), false);
     agregarAnimacion("walk",  cargarDesdeSpritesheet("Personajes/Aliados/Curandera/Priest-Walk.png",  100, 100, 6), false);
 
     setEstado("idle");
@@ -55,6 +55,7 @@ void Curandera::ataqueEspecial(std::vector<Personaje*>& aliados, std::vector<Per
         for (auto aliado : aliados) {
             if (aliado->esAliadoPersonaje())
                 aliado->restaurarVida(cura);
+                //healRuta: (Personajes/Aliados/Curandera/Priest-Heal_Effect,100, 100, 4), false))
         }
         usarMana(mana);
         qDebug() << nombre << " curó a todos por" << cura << "HP.";

@@ -26,6 +26,7 @@ void MapaWidget::inicializarGrafo()
     grafo.agregarZona("Bosque JS");
     grafo.agregarZona("Castillo Codigo");
     grafo.agregarZona("Ruinas");
+    grafo.agregarZona("Subterraneo");
 
     // Conexiones permanentes
     grafo.agregarConexion("ISLA", "Bosque JS", 40);
@@ -42,7 +43,14 @@ void MapaWidget::inicializarGrafo()
     grafo.agregarConexion("Ruinas", "Bosque JS", 22);
     grafo.agregarConexion("Bosque JS", "Ruinas", 22);
 
+    grafo.agregarConexion("Subterraneo", "Castillo Codigo", 27);
+    grafo.agregarConexion("Castillo Codigo", "Subterraneo", 27);
 
+    grafo.agregarConexion("Subterraneo", "Bosque JS", 3);
+    grafo.agregarConexion("Bosque JS", "Subterraneo", 3);
+
+    grafo.agregarConexion("Subterraneo", "Ruinas", 18);
+    grafo.agregarConexion("Ruinans", "Subterraneo", 18);
 
 
     // Conexiones condicionales (explorador)
@@ -76,10 +84,11 @@ QPoint MapaWidget::obtenerPosicionZona(const QString& zona) const
     static const QMap<QString, QPoint> posiciones = {
         {"ISLA", QPoint(380, 150)},
         {"Castillo Java", QPoint(140, 370)},
-        {"Desierto", QPoint(140, 450)},
-        {"Bosque JS", QPoint(380,460)},
-        {"Castillo Codigo", QPoint(660, 350)},
-        {"Ruinas", QPoint(660, 450)}
+        {"Desierto", QPoint(130, 490)},
+        {"Bosque JS", QPoint(380,420)},
+        {"Castillo Codigo", QPoint(660, 370)},
+        {"Ruinas", QPoint(660, 490)},
+        {"Subterraneo",QPoint(380,520)}
     };
     return posiciones.value(zona, QPoint(50, 50));
 }

@@ -4,6 +4,8 @@
 #include "ArbolHabilidad.h"
 #include "personaje.h"
 #include "Aliados.h"
+#include "InventarioWidget.h"
+#include "Objeto.h"
 
 #include "Curandera.h"
 #include "BattleWidget.h"
@@ -43,6 +45,18 @@ int main(int argc, char *argv[])
     BattleWidget w;
     w.show();
     //return a.exec();
+
+    Inventario* inventario = new Inventario();
+
+    inventario->agregarNucleo();
+    inventario->agregarPoscionVidaGrande();
+    inventario->agregarPoscionVidaGrande();
+    inventario->agregarPoscionVida(3);
+    inventario->agregarPoscionMana(3);
+
+
+    InventarioWidget* inventarioUI = new InventarioWidget(inventario);
+    inventarioUI->show();
 
 
 

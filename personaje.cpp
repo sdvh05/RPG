@@ -22,6 +22,10 @@ int Personaje::getManaActual() const { return manaActual; }
 int Personaje::getManaMax()const {return manaMax;}
 int Personaje::getNivel() const { return nivel; }
 bool Personaje::esAliadoPersonaje() const { return esAliado; }
+QString Personaje::getEstadoActual() const {
+    return estadoActual;
+}
+
 
 
 void Personaje::restaurarVida(int cantidad) {

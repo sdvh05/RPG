@@ -15,9 +15,11 @@ SOURCES += \
     battlewidget.cpp \
     caballero.cpp \
     curandera.cpp \
+    files.cpp \
     grafomapa.cpp \
     grafomapavisual.cpp \
     inventario.cpp \
+    inventariowidget.cpp \
     main.cpp \
     mainwindow.cpp \
     ogro.cpp \
@@ -28,15 +30,18 @@ SOURCES += \
 
 HEADERS += \
     Aliados.h \
+    EfectoVisual.h \
     NodoSkill.h \
     Objeto.h \
     arbolhabilidad.h \
     battlewidget.h \
     caballero.h \
     curandera.h \
+    files.h \
     grafomapa.h \
     grafomapavisual.h \
     inventario.h \
+    inventariowidget.h \
     mainwindow.h \
     ogro.h \
     personaje.h \

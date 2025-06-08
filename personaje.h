@@ -22,6 +22,8 @@ protected:
     int defensa = 0;
     bool esAliado;
     int nivel;
+    bool enAnimacionDeMuerte = false;
+
 
     struct Animacion {
         QList<QPixmap> frames;
@@ -47,11 +49,14 @@ public:
     int getManaMax()const;
     int getNivel() const;
     int getDefensa() const;
+    QString getEstadoActual() const;
     void aumentarDefensa(int cantidad);
     void resetearDefensa();
     bool esAliadoPersonaje() const;
     int getVidaMax() const { return vidaMax; }
     QRect getPosicionOriginal() const { return posicionOriginal; }
+    bool estaMuriendo() const { return enAnimacionDeMuerte; }
+    void marcarMuriendo() { enAnimacionDeMuerte = true; }
     void setPosicionOriginal(QRect rect);
 
 
