@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QScrollArea>
+#include <QPushButton>
+#include <QMap>
 #include "Inventario.h"
 
 class InventarioWidget : public QWidget {
@@ -11,25 +13,23 @@ class InventarioWidget : public QWidget {
 
 private:
     Inventario* inventario;
-
+    QVBoxLayout* layoutPrincipal;
     QScrollArea* scrollArea;
-    QWidget* contentWidget;
-    QVBoxLayout* layout;
+    QWidget* contenedor;
+    QVBoxLayout* layoutContenedor;
+    QPushButton* botonUsar;
+    QString seleccionadoActual;
+    QMap<QWidget*, QString> mapaItems;
 
-    // Muestra los objetos ordenados por rareza
-    void mostrarObjetosPorRarezaOrdenada();
-
-    // Crea el widget visual para un objeto
+    void mostrarObjetos();
     QWidget* crearWidgetObjeto(const Objeto& obj);
+    bool eventFilter(QObject* watched, QEvent* event) override;
 
-protected:
-    // Para detectar clicks en widgets objetos
-    bool eventFilter(QObject* obj, QEvent* event) override;
+private slots:
+    void usarObjetoSeleccionado();
 
 public:
     explicit InventarioWidget(Inventario* inv, QWidget* parent = nullptr);
-
-    // Actualiza la vista del inventario
     void actualizarVista();
 };
 

@@ -3,66 +3,58 @@
 #include <QPixmap>
 #include <QDebug>
 #include <QHBoxLayout>
-#include <QVBoxLayout>
-#include <QScrollArea>
-#include <QMouseEvent>
+#include <QEvent>
+#include <QFrame>
 
 InventarioWidget::InventarioWidget(Inventario* inv, QWidget* parent)
     : QWidget(parent), inventario(inv) {
 
-    QVBoxLayout* mainLayout = new QVBoxLayout(this);
-    setLayout(mainLayout);
+    layoutPrincipal = new QVBoxLayout(this);
+    setLayout(layoutPrincipal);
 
     scrollArea = new QScrollArea(this);
     scrollArea->setWidgetResizable(true);
-    mainLayout->addWidget(scrollArea);
+    layoutPrincipal->addWidget(scrollArea);
 
-    contentWidget = new QWidget;
-    scrollArea->setWidget(contentWidget);
+    contenedor = new QWidget(this);
+    layoutContenedor = new QVBoxLayout(contenedor);
+    contenedor->setLayout(layoutContenedor);
+    scrollArea->setWidget(contenedor);
 
-    layout = new QVBoxLayout(contentWidget);
-    layout->setAlignment(Qt::AlignTop);
+    botonUsar = new QPushButton("Usar objeto", this);
+    layoutPrincipal->addWidget(botonUsar);
+
+    connect(botonUsar, &QPushButton::clicked, this, &InventarioWidget::usarObjetoSeleccionado);
 
     actualizarVista();
 }
 
-// Filtro de eventos para detectar clics en los widgets de objetos
-bool InventarioWidget::eventFilter(QObject* obj, QEvent* event) {
-    if (event->type() == QEvent::MouseButtonPress) {
-        QWidget* w = qobject_cast<QWidget*>(obj);
-        if (w) {
-            QString nombreObjeto = w->property("nombreObjeto").toString();
-            if (!nombreObjeto.isEmpty()) {
-                qDebug() << "Seleccionaste:" << nombreObjeto;
-            }
-        }
-        return true; // evento consumido
-    }
-    return QWidget::eventFilter(obj, event);
-}
-
 void InventarioWidget::actualizarVista() {
-    // Limpia la vista anterior
+    // Limpiar vista
     QLayoutItem* child;
-    while ((child = layout->takeAt(0)) != nullptr) {
-        if (child->widget()) delete child->widget();
+    while ((child = layoutContenedor->takeAt(0)) != nullptr) {
+        if (child->widget()) {
+            mapaItems.remove(child->widget());
+            child->widget()->removeEventFilter(this);
+            delete child->widget();
+        }
         delete child;
     }
 
-    mostrarObjetosPorRarezaOrdenada();
+    seleccionadoActual.clear();
+    mostrarObjetos();
 }
 
-void InventarioWidget::mostrarObjetosPorRarezaOrdenada() {
+void InventarioWidget::mostrarObjetos() {
     QStringList ordenRarezas = { "Legendario", "Epico", "Raro", "Comun" };
 
     for (const QString& rareza : ordenRarezas) {
         QVector<Objeto*> lista;
         inventario->recogerPorRareza(rareza, lista);
         for (Objeto* obj : lista) {
-            QWidget* card = crearWidgetObjeto(*obj);
-            card->installEventFilter(this);  // instalamos el event filter
-            card->setProperty("nombreObjeto", obj->nombre);
-            layout->addWidget(card);
+            QWidget* w = crearWidgetObjeto(*obj);
+            mapaItems[w] = obj->nombre;
+            layoutContenedor->addWidget(w);
         }
     }
 }
@@ -96,9 +88,36 @@ QWidget* InventarioWidget::crearWidgetObjeto(const Objeto& obj) {
     layoutCard->addWidget(imagen);
     layoutCard->addWidget(info);
 
-    // Cambiar el cursor para indicar que es clickeable
-    card->setCursor(Qt::PointingHandCursor);
-
+    card->installEventFilter(this);
+    card->setStyleSheet("background-color: gray; border: 1px solid #ccc; border-radius: 8px;");
     return card;
 }
 
+bool InventarioWidget::eventFilter(QObject* watched, QEvent* event) {
+    if (event->type() == QEvent::MouseButtonPress) {
+        QWidget* widget = qobject_cast<QWidget*>(watched);
+        if (widget && mapaItems.contains(widget)) {
+            seleccionadoActual = mapaItems[widget];
+            qDebug() << "Seleccionaste:" << seleccionadoActual;
+
+            // Resaltar seleccionado
+            for (auto it = mapaItems.begin(); it != mapaItems.end(); ++it) {
+                if (it.key() == widget) {
+                    it.key()->setStyleSheet("background-color: #a8dadc; border: 2px solid #457b9d; border-radius: 8px;");
+                } else {
+                    it.key()->setStyleSheet("background-color: gray; border: 1px solid #ccc; border-radius: 8px;");
+                }
+            }
+        }
+    }
+    return QWidget::eventFilter(watched, event);
+}
+
+void InventarioWidget::usarObjetoSeleccionado() {
+    if (!seleccionadoActual.isEmpty()) {
+        inventario->usarObjeto(seleccionadoActual);
+        actualizarVista();
+    } else {
+        qDebug() << "No has seleccionado ningún objeto.";
+    }
+}
