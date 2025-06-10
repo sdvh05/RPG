@@ -51,6 +51,7 @@ int main(int argc, char *argv[])
     inventario->agregarNucleo();
     inventario->agregarPoscionVidaGrande();
     inventario->agregarPoscionVidaGrande();
+    inventario->agregarLlave();
     inventario->agregarPoscionVida(3);
     inventario->agregarPoscionMana(3);
 

@@ -21,6 +21,9 @@ private:
     QPixmap fondoMapa;
     GrafoMapa grafo;
     QString zonaActual;
+    QString zonaInicio;
+    QString zonaFin;
+
 
     QPushButton *btnRegresar;
     QLabel *lblZonaActual;
@@ -31,6 +34,8 @@ private:
     void inicializarGrafo();
     void dibujarGrafo(QPainter &painter);
     QPoint obtenerPosicionZona(const QString& zona) const;
+    QList<QString> rutaActual;
+
 };
 
 #endif // GRAFOMAPAVISUAL_H

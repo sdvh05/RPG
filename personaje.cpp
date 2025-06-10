@@ -32,6 +32,10 @@ void Personaje::restaurarVida(int cantidad) {
     vidaActual = qMin(vidaMax, vidaActual + cantidad);
 }
 
+void Personaje::restaurarMana(int cantidad){
+    manaActual = qMin(manaMax, manaActual + cantidad);
+}
+
 void Personaje::usarMana(int cantidad) {
     manaActual = qMax(0, manaActual - cantidad);
 }

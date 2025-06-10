@@ -21,6 +21,8 @@ public:
     int pesoConexion(const QString& origen, const QString& destino) const;
     QList<QString> obtenerAdyacentes(const QString& zona) const;
     QList<QPair<QString, int>> obtenerConexiones(const QString& zona) const;
+    QList<QString> rutaMasCorta(const QString& origen, const QString& destino) const;
+
 
     // Explorador
     void activarConexionCondicional(const QString& origen, const QString& destino);

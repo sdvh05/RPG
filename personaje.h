@@ -64,6 +64,7 @@ public:
     void recibirDanio(int cantidad);
     virtual void ataqueEspecial(std::vector<Personaje*>& aliados, std::vector<Personaje*>& enemigos);
     void restaurarVida(int cantidad);
+    void restaurarMana(int cantidad);
     void usarMana(int cantidad);
 
     void agregarAnimacion(const QString& estado, const QList<QPixmap>& frames, bool ciclica = true);

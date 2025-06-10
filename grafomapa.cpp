@@ -84,3 +84,61 @@ bool GrafoMapa::esConexionActiva(const QString& origen, const QString& destino) 
     if(!grafo[origen].contains(destino)) return false;
     return grafo[origen][destino].activa;
 }
+
+QList<QString> GrafoMapa::rutaMasCorta(const QString& origen, const QString& destino) const {
+    QMap<QString, int> distancias;
+    QMap<QString, QString> anteriores;
+    QSet<QString> visitados;
+
+    for (const QString& zona : zonas) {
+        distancias[zona] = INT_MAX;
+    }
+    distancias[origen] = 0;
+
+    while (visitados.size() < zonas.size()) {
+        // Buscar el nodo no visitado con menor distancia
+        QString nodoActual;
+        int minDist = INT_MAX;
+        for (const QString& zona : zonas) {
+            if (!visitados.contains(zona) && distancias[zona] < minDist) {
+                minDist = distancias[zona];
+                nodoActual = zona;
+            }
+        }
+
+        if (nodoActual.isEmpty()) break;  // No hay más accesibles
+        visitados.insert(nodoActual);
+
+        for (const auto& conexion : grafo[nodoActual].toStdMap()) {
+            const QString& vecino = conexion.first;
+            const Conexion& datos = conexion.second;
+
+            if (!datos.esPermanente && !datos.activa)
+                continue;  // Ignorar conexiones condicionales inactivas
+
+            int nuevaDist = distancias[nodoActual] + datos.peso;
+            if (nuevaDist < distancias[vecino]) {
+                distancias[vecino] = nuevaDist;
+                anteriores[vecino] = nodoActual;
+            }
+        }
+    }
+
+    // Reconstruir camino
+    QList<QString> ruta;
+    QString actual = destino;
+
+    while (anteriores.contains(actual)) {
+        ruta.prepend(actual);
+        actual = anteriores[actual];
+    }
+
+    if (actual == origen) {
+        ruta.prepend(origen);
+        return ruta;
+    }
+
+    return {};  // No se encontró ruta
+}
+
+

@@ -43,18 +43,18 @@ void MapaWidget::inicializarGrafo()
     grafo.agregarConexion("Ruinas", "Bosque JS", 22);
     grafo.agregarConexion("Bosque JS", "Ruinas", 22);
 
-    grafo.agregarConexion("Subterraneo", "Castillo Codigo", 27);
-    grafo.agregarConexion("Castillo Codigo", "Subterraneo", 27);
+   // grafo.agregarConexion("Subterraneo", "Castillo Codigo", 27);
+   // grafo.agregarConexion("Castillo Codigo", "Subterraneo", 27);
 
     grafo.agregarConexion("Subterraneo", "Bosque JS", 3);
     grafo.agregarConexion("Bosque JS", "Subterraneo", 3);
 
     grafo.agregarConexion("Subterraneo", "Ruinas", 18);
-    grafo.agregarConexion("Ruinans", "Subterraneo", 18);
+    grafo.agregarConexion("Ruinas", "Subterraneo", 18);
 
 
     // Conexiones condicionales (explorador)
-    grafo.agregarConexion("Castillo Java", "Castillo Codigo", 46, false);
+    grafo.agregarConexion("Castillo Java", "Castillo Codigo", 45, false);
     grafo.activarConexionCondicional("Castillo Java", "Castillo Codigo");
 
 }
@@ -83,12 +83,12 @@ QPoint MapaWidget::obtenerPosicionZona(const QString& zona) const
 {
     static const QMap<QString, QPoint> posiciones = {
         {"ISLA", QPoint(380, 150)},
-        {"Castillo Java", QPoint(140, 370)},
-        {"Desierto", QPoint(130, 490)},
-        {"Bosque JS", QPoint(380,420)},
-        {"Castillo Codigo", QPoint(660, 370)},
-        {"Ruinas", QPoint(660, 490)},
-        {"Subterraneo",QPoint(380,520)}
+        {"Castillo Java", QPoint(133, 390)},
+        {"Desierto", QPoint(140, 520)},
+        {"Bosque JS", QPoint(380,430)},
+        {"Castillo Codigo", QPoint(665, 360)},
+        {"Ruinas", QPoint(630, 470)},
+        {"Subterraneo",QPoint(430,525)}
     };
     return posiciones.value(zona, QPoint(50, 50));
 }
@@ -106,7 +106,6 @@ void MapaWidget::dibujarGrafo(QPainter &painter)
 {
     painter.setRenderHint(QPainter::Antialiasing);
 
-    // Dibujar conexiones primero
     for(const QString& origen : grafo.obtenerZonas()) {
         for(const auto& conexion : grafo.obtenerConexiones(origen)) {
             QString destino = conexion.first;
@@ -115,7 +114,6 @@ void MapaWidget::dibujarGrafo(QPainter &painter)
             QPoint p1 = obtenerPosicionZona(origen);
             QPoint p2 = obtenerPosicionZona(destino);
 
-            // tipo de conexion
             bool esPermanente = grafo.esConexionPermanente(origen, destino);
             bool estaActiva = grafo.esConexionActiva(origen, destino);
 
@@ -141,6 +139,16 @@ void MapaWidget::dibujarGrafo(QPainter &painter)
         }
     }
 
+    if (rutaActual.size() >= 2) {
+        QPen rutaPen(Qt::yellow, 4, Qt::SolidLine);
+        painter.setPen(rutaPen);
+
+        for (int i = 0; i < rutaActual.size() - 1; ++i) {
+            QPoint p1 = obtenerPosicionZona(rutaActual[i]);
+            QPoint p2 = obtenerPosicionZona(rutaActual[i + 1]);
+            painter.drawLine(p1, p2);
+        }
+    }
 
     // Dibujar zonas
     for(const QString& zona : grafo.obtenerZonas()) {
@@ -161,24 +169,38 @@ void MapaWidget::mousePressEvent(QMouseEvent *event)
 {
     QPoint clickPos = event->pos();
 
-    // Verificar clic en zonas
     for(const QString& zona : grafo.obtenerZonas()) {
         QPoint centro = obtenerPosicionZona(zona);
         if(QVector2D(clickPos - centro).length() <= 20) {
-            zonaActual = zona;
-            update();
 
-            // Mostrar información de conexiones
-            QStringList conexionesInfo;
-            for(const auto& conexion : grafo.obtenerConexiones(zona)) {
-                conexionesInfo << QString("%1 (distancia: %2)").arg(conexion.first).arg(conexion.second);
+            if (zonaInicio.isEmpty()) {
+                zonaInicio = zona;
+                lblZonaActual->setText("Inicio: " + zonaInicio);
+            } else {
+                zonaFin = zona;
+                lblZonaActual->setText("Destino: " + zonaFin);
+
+                rutaActual = grafo.rutaMasCorta(zonaInicio, zonaFin);
+
+                if (rutaActual.isEmpty())
+                    lblConexiones->setText("");
+
+                if (!rutaActual.isEmpty()) {
+                    lblConexiones->setText("Ruta más corta: " + rutaActual.join(" -> "));
+                } else {
+                    lblConexiones->setText("No hay ruta disponible.");
+                }
+
+                zonaInicio.clear();
+                zonaFin.clear();
             }
 
-            lblZonaActual->setText("Zona: " + zona);
-            lblConexiones->setText("Conectado a: " + conexionesInfo.join(" | "));
+            update();
             break;
         }
     }
 
+
     QWidget::mousePressEvent(event);
 }
+
