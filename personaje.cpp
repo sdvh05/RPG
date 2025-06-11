@@ -1,4 +1,5 @@
 #include "Personaje.h"
+#include "InventarioWidget.h"
 #include <QDebug>
 
 Personaje::Personaje(QString nombre, int vida, int mana, int ataque, bool aliado)
@@ -176,5 +177,24 @@ QPixmap Personaje::recortarContenido(const QPixmap& original) {
 
     QRect recorte(minX, minY, maxX - minX + 1, maxY - minY + 1);
     return original.copy(recorte);
+}
+
+void Personaje::abrirInventario(Inventario* inventario) {
+    InventarioWidget* widget = new InventarioWidget(inventario);
+    widget->show();
+
+    connect(widget, &InventarioWidget::objetoUsado, this, [=](const Objeto& obj){
+        if (obj.tipo == "Curacion") {
+            if (obj.nombre.contains("Vida")) {
+                restaurarVida(obj.valor);
+                qDebug() << nombre << "usó" << obj.nombre << "y curó" << obj.valor << "de vida.";
+            } else if (obj.nombre.contains("Mana")) {
+                restaurarMana(obj.valor);
+                qDebug() << nombre << "usó" << obj.nombre << "y recuperó" << obj.valor << "de maná.";
+            }
+        } else {
+            qDebug() << "El objeto" << obj.nombre << "no tiene efecto directo sobre el personaje.";
+        }
+    });
 }
 

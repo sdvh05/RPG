@@ -31,6 +31,9 @@ private slots:
 public:
     explicit InventarioWidget(Inventario* inv, QWidget* parent = nullptr);
     void actualizarVista();
+
+signals:
+    void objetoUsado(const Objeto& objeto);
 };
 
 #endif // INVENTARIOWIDGET_H

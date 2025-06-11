@@ -6,6 +6,7 @@
 #include <QRandomGenerator64>
 #include <QMouseEvent>
 #include <QMessageBox>
+extern Inventario* inventarioGlobal;
 
 
 
@@ -27,7 +28,7 @@ BattleWidget::BattleWidget(QWidget* parent)
     //CargarEnemigos("rider");
     //CargarEnemigos("armored");
 
-    //setFondo("Personajes/MapasCombate/BosqueJS.png");
+    //showFondo("Desierto");
 
 
 
@@ -61,6 +62,31 @@ void BattleWidget::setFondo(const QString& ruta) {
     }
     fondo = nuevoFondo;
     update();
+}
+
+void BattleWidget::showFondo(const QString& ruta) {
+    if(ruta.contains("Isla")){
+        setFondo("Personajes/MapasCombate/BosqueJS.png");
+    }
+    if(ruta.contains("Bosque")){
+        setFondo("Personajes/MapasCombate/BosqueJS.png");
+    }
+    if(ruta.contains("Desierto")){
+        setFondo("Personajes/MapasCombate/Desierto.png");
+    }
+    if(ruta.contains("Castillo Java")){
+        setFondo("Personajes/MapasCombate/BosqueJS.png");
+    }
+    if(ruta.contains("Castillo Codigo")){
+        setFondo("Personajes/MapasCombate/BosqueJS.png");
+    }
+    if(ruta.contains("Subterraneo")){
+        setFondo("Personajes/MapasCombate/BosqueJS.png");
+    }
+    if(ruta.contains("Ruinas")){
+        setFondo("Personajes/MapasCombate/BosqueJS.png");
+    }
+
 }
 
 
@@ -130,7 +156,9 @@ void BattleWidget::paintEvent(QPaintEvent*) {
 
     //Enemigos
     for (Personaje* e : enemigos) {
-        QPixmap sprite = e->getFrameActual();
+        QPixmap spriteOriginal = e->getFrameActual();
+        QPixmap sprite = spriteOriginal.transformed(QTransform().scale(-1, 1));
+
         QRect pos = e->getPosicion();
 
         if (!sprite.isNull()) {
@@ -170,7 +198,7 @@ void BattleWidget::crearInterfaz() {
     btnAtacar = new QPushButton("Atacar", this);
     btnEspecial = new QPushButton("Ataque Especial", this);
     btnInventario = new QPushButton("Inventario", this);
-    btnHuir = new QPushButton("Huir", this);
+    btnHuir = new QPushButton("Regresar", this);
 
     lblSeleccion = new QLabel(this);
     lblSeleccion->setGeometry(10, 10, 300, 30);
@@ -188,8 +216,28 @@ void BattleWidget::crearInterfaz() {
     connect(btnEspecial, &QPushButton::clicked, this, [=]() {
         accionSeleccionada("especial");
     });
+    connect(btnInventario, &QPushButton::clicked, this, [=]() {
+        accionSeleccionada("inventario");
+    });
+
     connect(btnHuir, &QPushButton::clicked, this, [=]() {
-        qDebug() << "Intentaste huir...";
+        connect(btnHuir, &QPushButton::clicked, this, [=]() {
+            if (indiceAliado > 0) {
+                indiceAliado--;
+                // Remueve la última acción añadida (si ya se eligió acción)
+                if (!accionesAliados.isEmpty())
+                    accionesAliados.removeLast();
+
+                Personaje* actual = aliados[indiceAliado];
+                lblSeleccion->show();
+                lblSeleccion->setText("¿Qué hará " + actual->getNombre() + "?");
+                actualizarColorBotones(actual->getNombre());
+
+                qDebug() << "Regresaste al turno de:" << actual->getNombre();
+            } else {
+                qDebug() << "Ya estás en el primer aliado. No puedes retroceder más.";
+            }
+        });
     });
 }
 
@@ -201,7 +249,7 @@ void BattleWidget::CargarAliados() {
 }
 
 void BattleWidget::MostrarAliados() {
-    int startY = 100;
+    int startY = 130;
     for (int i = 0; i < aliados.size(); ++i) {
         QRect pos(50, startY + i * 100, 64, 64);
         aliados[i]->setPosicion(pos);
@@ -209,7 +257,7 @@ void BattleWidget::MostrarAliados() {
 }
 
 void BattleWidget::MostrarEnemigos() {
-    int startY = 100;
+    int startY = 130;
     for (int i = 0; i < enemigos.size(); ++i) {
         QRect pos(640, startY + i * 100, 64, 64);
         enemigos[i]->setPosicion(pos);
@@ -268,7 +316,7 @@ void BattleWidget::CargarEnemigos(const QString& tipo) {
 void BattleWidget::accionSeleccionada(QString tipo) {
     if (faseActual != PLANIFICAR || indiceAliado >= aliados.size()) return;
 
-    // los muertos no actuan
+    // los muertos no actúan
     if (aliados[indiceAliado]->getVidaActual() == 0) {
         indiceAliado++;
         if (indiceAliado < aliados.size()) {
@@ -285,15 +333,44 @@ void BattleWidget::accionSeleccionada(QString tipo) {
     Personaje* personajeActual = aliados[indiceAliado];
     actualizarColorBotones(personajeActual->getNombre());
 
-    //Elegir objetivo: sino se elige ataca al de mas arriba
-    Personaje* objetivo = (enemigoSeleccionado && enemigos.contains(enemigoSeleccionado))
-                              ? enemigoSeleccionado
-                              : (!enemigos.isEmpty() ? enemigos[0] : nullptr);
+    // Caso especial: Inventario
+    if (tipo == "inventario") {
+        // Mostrar widget y esperar a que se cierre
+        personajeActual->abrirInventario(inventarioGlobal);
 
-    // Guardamos la acción planificada
+
+        // Pausar botones y esperar a que termine
+        setBotonesHabilitados(false);
+
+
+            // Guardamos acción solo si se usó un objeto
+
+                accionesAliados.append({ personajeActual, "inventario", nullptr });
+
+
+            indiceAliado++;
+            if (indiceAliado < aliados.size()) {
+                lblSeleccion->setText("¿Qué hará " + aliados[indiceAliado]->getNombre() + "?");
+                actualizarColorBotones(aliados[indiceAliado]->getNombre());
+                setBotonesHabilitados(true);
+            } else {
+                faseActual = EJECUTAR;
+                lblSeleccion->hide();
+                ejecutarAccionesAliadas();
+            }
+
+
+        return;
+    }
+
+    // Elegir objetivo (si no hay, al primero)
+    Personaje* objetivo = (enemigoSeleccionado && enemigos.contains(enemigoSeleccionado))
+                          ? enemigoSeleccionado
+                          : (!enemigos.isEmpty() ? enemigos[0] : nullptr);
+
+    // Guardamos acción
     accionesAliados.append({ personajeActual, tipo, objetivo });
 
-    // Reset para el siguiente personaje
     enemigoSeleccionado = nullptr;
     indiceAliado++;
 
@@ -361,6 +438,7 @@ void BattleWidget::ejecutarAccionesAliadas() {
             return;
         }
 
+
         if (accion.tipo == "atacar") {
             Personaje* objetivo = accion.objetivo;
             if (!objetivo || objetivo->getVidaActual() == 0)
@@ -379,9 +457,10 @@ void BattleWidget::ejecutarAccionesAliadas() {
                 return;
             } else {
                 (*index)++;
-                eliminarMuertos(); // ← si no hay objetivo válido
+                eliminarMuertos();
             }
         }
+
 
         else if (accion.tipo == "especial") {
             std::vector<Personaje*> aliadosVector(aliados.begin(), aliados.end());
@@ -405,7 +484,7 @@ void BattleWidget::ejecutarAccionesAliadas() {
                     return;
                 } else {
                     (*index)++;
-                    eliminarMuertos(); // ← no hay enemigo vivo
+                    eliminarMuertos();
                 }
             }
 
@@ -430,6 +509,14 @@ void BattleWidget::ejecutarAccionesAliadas() {
             eliminarMuertos();
             update();
             (*index)++;
+        }
+
+        else if (accion.tipo == "inventario") {
+            qDebug() << accion.actor->getNombre() << " usó un objeto del inventario.";
+            eliminarMuertos();
+            update();
+            (*index)++;
+            return;
         }
     });
 
@@ -610,7 +697,7 @@ void BattleWidget::CaminarParaAtacar(Personaje* atacante, Personaje* objetivo, s
             eliminarMuertos();
             update();
 
-            QTimer::singleShot(400, this, [=]() {
+            QTimer::singleShot(800, this, [=]() {
                 CaminarDeVuelta(atacante, onFinalizado);
             });
 
@@ -664,6 +751,7 @@ void BattleWidget::mostrarEfectoCuracion(Personaje* personaje) {
     // Eliminar 1s
     QTimer::singleShot(1000, efecto, &QLabel::deleteLater);
 }
+
 
 
 

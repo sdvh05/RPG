@@ -1,6 +1,9 @@
 #ifndef PERSONAJE_H
 #define PERSONAJE_H
 
+#include "Inventario.h"
+#include "InventarioWidget.h"
+
 #include <QObject>
 #include <QString>
 #include <QPixmap>
@@ -77,6 +80,9 @@ public:
     QRect getPosicion() const;
 
     static QList<QPixmap> cargarDesdeSpritesheet(const QString& ruta, int frameAncho, int frameAlto, int totalFrames);
+
+    void abrirInventario(Inventario* inventario);
+
 
 protected slots:
     void actualizarAnimacion();

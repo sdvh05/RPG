@@ -114,10 +114,24 @@ bool InventarioWidget::eventFilter(QObject* watched, QEvent* event) {
 }
 
 void InventarioWidget::usarObjetoSeleccionado() {
-    if (!seleccionadoActual.isEmpty()) {
-        inventario->usarObjeto(seleccionadoActual);
+    if (seleccionadoActual.isEmpty()) {
+        qDebug() << "No has seleccionado ningún objeto.";
+        return;
+    }
+
+    Objeto* obj = inventario->obtenerObjeto(seleccionadoActual);
+    if (!obj) {
+        qDebug() << "El objeto no existe en el inventario.";
+        return;
+    }
+
+    if (obj->tipo == "Curacion") {
+        inventario->usarObjeto(obj->nombre);
+        emit objetoUsado(*obj);
         actualizarVista();
     } else {
-        qDebug() << "No has seleccionado ningún objeto.";
+        qDebug() << obj->nombre << "no se puede usar.";
     }
 }
+
+

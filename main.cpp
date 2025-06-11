@@ -5,6 +5,7 @@
 #include "personaje.h"
 #include "Aliados.h"
 #include "InventarioWidget.h"
+#include"inventario.h"
 #include "Objeto.h"
 
 #include "Curandera.h"
@@ -19,6 +20,8 @@
 #include <QLabel>
 #include <QStatusBar>
 #include <QMainWindow>
+
+Inventario* inventarioGlobal = nullptr;
 
 int main(int argc, char *argv[])
 {
@@ -46,17 +49,17 @@ int main(int argc, char *argv[])
     w.show();
     //return a.exec();
 
-    Inventario* inventario = new Inventario();
+    inventarioGlobal = new Inventario();
 
-    inventario->agregarNucleo();
-    inventario->agregarPoscionVidaGrande();
-    inventario->agregarPoscionVidaGrande();
-    inventario->agregarLlave();
-    inventario->agregarPoscionVida(3);
-    inventario->agregarPoscionMana(3);
+    inventarioGlobal->agregarNucleo();
+    inventarioGlobal->agregarPoscionVidaGrande();
+    inventarioGlobal->agregarPoscionVidaGrande();
+    inventarioGlobal->agregarLlave();
+    inventarioGlobal->agregarPoscionVida(3);
+    inventarioGlobal->agregarPoscionMana(3);
 
 
-    InventarioWidget* inventarioUI = new InventarioWidget(inventario);
+    InventarioWidget* inventarioUI = new InventarioWidget(inventarioGlobal);
     inventarioUI->show();
 
 

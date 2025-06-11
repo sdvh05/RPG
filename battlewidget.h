@@ -13,6 +13,7 @@
 #include "ogro.h"
 #include "EfectoVisual.h"
 
+
 class BattleWidget : public QWidget {
     Q_OBJECT
 
@@ -40,6 +41,7 @@ public:
     void mousePressEvent(QMouseEvent* event) override;
     Personaje* obtenerObjetivoVivo(bool esEnemigo);
     void setFondo(const QString& ruta);
+    void showFondo(const QString& ruta);
     QList<EfectoVisual*> efectosVisuales;
     void mostrarEfectoCuracion(Personaje* objetivo);
 
