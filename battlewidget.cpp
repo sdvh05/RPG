@@ -10,29 +10,26 @@ extern Inventario* inventarioGlobal;
 
 
 
-BattleWidget::BattleWidget(QWidget* parent)
-    : QWidget(parent), /*fondo("Personajes/pruebaF.jpeg")*/fondo("Personajes/MapasCombate/BosqueJS.png")
+BattleWidget::BattleWidget(const QString& lugar, const QString& enemigo, QWidget* parent)
+    : QWidget(parent)
 {
-    setFixedSize(800, 480);
+    setFixedSize(700, 700);
 
     crearInterfaz();
     CargarAliados();
     MostrarAliados();
 
-
+    CargarEnemigos(enemigo);
+    showFondo(lugar);
 
     //CargarEnemigos();
     //CargarEnemigos("slime");
-    CargarEnemigos("ogros normales");
+    //CargarEnemigos("ogros normales");
     //CargarEnemigos("elite");
     //CargarEnemigos("rider");
     //CargarEnemigos("armored");
 
     //showFondo("Desierto");
-
-
-
-    //MostrarEnemigos();
 
     updateTimer = new QTimer(this);
     connect(updateTimer, &QTimer::timeout, this, QOverload<>::of(&BattleWidget::update));
@@ -86,6 +83,9 @@ void BattleWidget::showFondo(const QString& ruta) {
     if(ruta.contains("Ruinas")){
         setFondo("Personajes/MapasCombate/BosqueJS.png");
     }
+    else{
+        setFondo("Personajes/MapasCombate/BosqueJS.png");
+        }
 
 }
 
@@ -98,6 +98,7 @@ void BattleWidget::paintEvent(QPaintEvent*) {
 
     QFont font = painter.font();
     font.setPointSize(10);
+    font.setBold(true);
     painter.setFont(font);
 
     //Aliados
@@ -201,14 +202,33 @@ void BattleWidget::crearInterfaz() {
     btnHuir = new QPushButton("Regresar", this);
 
     lblSeleccion = new QLabel(this);
-    lblSeleccion->setGeometry(10, 10, 300, 30);
-   // lblSeleccion->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 4px;");
+    lblSeleccion->setGeometry(20, 25, 250, 50);
     lblSeleccion->setText("Elige acción para...");
+    lblSeleccion->setAlignment(Qt::AlignCenter);
+    QFont font = lblSeleccion->font();
+    font.setPointSize(12);
+    lblSeleccion->setFont(font);
 
-    btnAtacar->setGeometry(10, 400, 120, 30);
-    btnEspecial->setGeometry(140, 400, 120, 30);
-    btnInventario->setGeometry(270, 400, 120, 30);
-    btnHuir->setGeometry(400, 400, 120, 30);
+    contenedorStatsAliado = new QWidget(this);
+    contenedorStatsAliado->setGeometry(350, 10, 250, 90);
+    contenedorStatsAliado->setStyleSheet("background-color: #2196F3; border: 2px solid white;");
+    lblImagenAliado = new QLabel(contenedorStatsAliado);
+    lblImagenAliado->setGeometry(10, 10, 64, 64);
+    lblImagenAliado->setStyleSheet("background-color: white;");
+    lblTextoStats = new QLabel(contenedorStatsAliado);
+    lblTextoStats->setGeometry(84, 7, 150, 75);
+    lblTextoStats->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+    lblTextoStats->setWordWrap(true);
+
+    QFont fontStats;
+    fontStats.setPointSize(9);
+    lblTextoStats->setFont(fontStats);
+
+
+    btnAtacar->setGeometry(10, 620, 150, 40);
+    btnEspecial->setGeometry(170, 620, 150, 40);
+    btnInventario->setGeometry(330, 620, 150, 40);
+    btnHuir->setGeometry(490, 620, 150, 40);
 
     connect(btnAtacar, &QPushButton::clicked, this, [=]() {
         accionSeleccionada("atacar");
@@ -232,6 +252,7 @@ void BattleWidget::crearInterfaz() {
                 lblSeleccion->show();
                 lblSeleccion->setText("¿Qué hará " + actual->getNombre() + "?");
                 actualizarColorBotones(actual->getNombre());
+                contenedorStatsAliado->show();
 
                 qDebug() << "Regresaste al turno de:" << actual->getNombre();
             } else {
@@ -249,7 +270,7 @@ void BattleWidget::CargarAliados() {
 }
 
 void BattleWidget::MostrarAliados() {
-    int startY = 130;
+    int startY = 300;
     for (int i = 0; i < aliados.size(); ++i) {
         QRect pos(50, startY + i * 100, 64, 64);
         aliados[i]->setPosicion(pos);
@@ -257,9 +278,9 @@ void BattleWidget::MostrarAliados() {
 }
 
 void BattleWidget::MostrarEnemigos() {
-    int startY = 130;
+    int startY = 300;
     for (int i = 0; i < enemigos.size(); ++i) {
-        QRect pos(640, startY + i * 100, 64, 64);
+        QRect pos(540, startY + i * 100, 64, 64);
         enemigos[i]->setPosicion(pos);
     }
 }
@@ -325,6 +346,7 @@ void BattleWidget::accionSeleccionada(QString tipo) {
         } else {
             faseActual = EJECUTAR;
             lblSeleccion->hide();
+            contenedorStatsAliado->hide();
             ejecutarAccionesAliadas();
         }
         return;
@@ -344,7 +366,6 @@ void BattleWidget::accionSeleccionada(QString tipo) {
 
 
             // Guardamos acción solo si se usó un objeto
-
                 accionesAliados.append({ personajeActual, "inventario", nullptr });
 
 
@@ -356,6 +377,7 @@ void BattleWidget::accionSeleccionada(QString tipo) {
             } else {
                 faseActual = EJECUTAR;
                 lblSeleccion->hide();
+                contenedorStatsAliado->hide();
                 ejecutarAccionesAliadas();
             }
 
@@ -380,6 +402,7 @@ void BattleWidget::accionSeleccionada(QString tipo) {
     } else {
         faseActual = EJECUTAR;
         lblSeleccion->hide();
+        contenedorStatsAliado->hide();
         ejecutarAccionesAliadas();
     }
 }
@@ -396,7 +419,7 @@ void BattleWidget::actualizarColorBotones(const QString& nombrePersonaje) {
     else if (nombrePersonaje.contains("Princesa", Qt::CaseInsensitive))
         color = "#E91E63"; // Rosado
     else
-        color = "#607D8B"; // Gris por defecto
+        color = "#607D8B"; // Gris
 
     QString estiloBoton = QString("background-color: %1; color: white; font-weight: bold;").arg(color);
     btnAtacar->setStyleSheet(estiloBoton);
@@ -406,7 +429,31 @@ void BattleWidget::actualizarColorBotones(const QString& nombrePersonaje) {
 
     QString estiloLabel = QString("background-color: %1; color: white; font-weight: bold; padding: 4px;").arg(color);
     lblSeleccion->setStyleSheet(estiloLabel);
+
+    // Mostrar estadísticas del aliado actual
+    for (Personaje* p : aliados) {
+        if (p->getNombre() == nombrePersonaje) {
+            QString stats = QString("Nombre: %1\nAtaque: %2\nVida: %3/%4\nManá: %5/%6")
+                                .arg(p->getNombre())
+                                .arg(p->getAtaque())
+                                .arg(p->getVidaActual())
+                                .arg(p->getVidaMax())
+                                .arg(p->getManaActual())
+                                .arg(p->getManaMax());
+            lblTextoStats->setText(stats);
+
+            QPixmap sprite = p->getFrameActual();
+            if (!sprite.isNull()) {
+                lblImagenAliado->setPixmap(sprite.scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            } else {
+                lblImagenAliado->clear();
+            }
+
+            break;
+        }
+    }
 }
+
 
 
 
@@ -542,6 +589,7 @@ void BattleWidget::ejecutarTurnoEnemigos() {
 
             if (!aliados.isEmpty()) {
                 lblSeleccion->show();
+                contenedorStatsAliado->show();
                 lblSeleccion->setText("¿Qué hará " + aliados[0]->getNombre() + "?");
                 actualizarColorBotones(aliados[0]->getNombre());
             }
@@ -655,6 +703,7 @@ void BattleWidget::verificarVictoria() {
         QMessageBox::information(this, "¡Victoria!", "¡Has derrotado a todos los enemigos!");
         setBotonesHabilitados(false);
         lblSeleccion->hide();
+
         faseActual = ESPERA;
     } else if (aliadosDerrotados) {
         QMessageBox::critical(this, "Derrota", "Todos tus personajes han sido derrotados...");

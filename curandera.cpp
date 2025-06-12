@@ -1,7 +1,7 @@
 #include "Curandera.h"
 
 Curandera::Curandera()
-    : Aliado("Curandera", 100, 50, 10) {
+    : Aliado("Curandera", 100, 60, 10) {
 
     arbol = new ArbolHabilidad();
 

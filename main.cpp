@@ -45,8 +45,8 @@ int main(int argc, char *argv[])
 */
 
    // QApplication a(argc, argv);
-    BattleWidget w;
-    w.show();
+    BattleWidget* batalla = new BattleWidget("BosqueJS", "ogros normales");
+    batalla->show();
     //return a.exec();
 
     inventarioGlobal = new Inventario();
@@ -59,14 +59,14 @@ int main(int argc, char *argv[])
     inventarioGlobal->agregarPoscionMana(3);
 
 
-    InventarioWidget* inventarioUI = new InventarioWidget(inventarioGlobal);
-    inventarioUI->show();
+    //InventarioWidget* inventarioUI = new InventarioWidget(inventarioGlobal);
+    //inventarioUI->show();
 
 
 
 //-----------------------------------
-    MapaWidget mapa;
-    mapa.show();
+    //MapaWidget mapa;
+    //mapa.show();
     return a.exec();
 
     return 0;

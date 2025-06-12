@@ -129,6 +129,7 @@ void InventarioWidget::usarObjetoSeleccionado() {
         inventario->usarObjeto(obj->nombre);
         emit objetoUsado(*obj);
         actualizarVista();
+        this->close();
     } else {
         qDebug() << obj->nombre << "no se puede usar.";
     }

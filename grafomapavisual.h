@@ -25,6 +25,7 @@ private:
     QString zonaFin;
 
 
+
     QPushButton *btnRegresar;
     QLabel *lblZonaActual;
     QLabel *lblConexiones;

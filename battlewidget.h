@@ -31,7 +31,7 @@ class BattleWidget : public QWidget {
     };
 
 public:
-    explicit BattleWidget(QWidget* parent = nullptr);
+    explicit BattleWidget(const QString& lugar, const QString& enemigo, QWidget* parent = nullptr);
     ~BattleWidget();
 
 
@@ -66,6 +66,14 @@ private:
 
     void crearInterfaz();
     QLabel* lblSeleccion;
+
+
+    QWidget* contenedorStatsAliado;
+    QLabel* lblImagenAliado;
+    QLabel* lblTextoStats;
+
+
+
     void CargarAliados();
     void MostrarAliados();
 
