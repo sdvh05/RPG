@@ -36,6 +36,10 @@ private:
     void dibujarGrafo(QPainter &painter);
     QPoint obtenerPosicionZona(const QString& zona) const;
     QList<QString> rutaActual;
+    QLabel* lblTodasRutas;
+
+signals:
+    void cerrarMapa();
 
 };
 

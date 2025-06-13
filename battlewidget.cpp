@@ -1,4 +1,5 @@
 #include "BattleWidget.h"
+#include "gamewindow.h"
 #include <QPainter>
 #include <QRandomGenerator>
 #include <QVBoxLayout>
@@ -6,6 +7,8 @@
 #include <QRandomGenerator64>
 #include <QMouseEvent>
 #include <QMessageBox>
+#include "grafomapavisual.h"
+
 extern Inventario* inventarioGlobal;
 
 
@@ -702,6 +705,7 @@ void BattleWidget::verificarVictoria() {
     if (enemigosDerrotados) {
         QMessageBox::information(this, "¡Victoria!", "¡Has derrotado a todos los enemigos!");
         setBotonesHabilitados(false);
+        this->close();
         lblSeleccion->hide();
 
         faseActual = ESPERA;

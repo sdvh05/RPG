@@ -1,0 +1,1598 @@
+#include "GameWindow.h"
+#include "battlewidget.h"
+#include <QMessageBox>
+#include "CustomGraphicsView.h"
+#include <QGraphicsPixmapItem>
+
+#include "InventarioWidget.h"
+#include"inventario.h"
+#include "Objeto.h"
+#include "grafomapavisual.h"
+
+extern Inventario* inventarioGlobal;
+
+GameWindow::GameWindow(QWidget *parent)
+    : QWidget(parent), frameIndex(0), currentDirection(None), idleFrameIndex(0)
+{
+    this->setWindowTitle("Mapa del Juego");
+
+
+    scene = new QGraphicsScene(this);
+    //view = new QGraphicsView(scene, this);
+    view = new CustomGraphicsView(scene, this);
+
+    retratoMago.load("OpenSprite/retrato_mago.png");
+    retratoCaballero.load("OpenSprite/retrato_caballero.png");
+
+    // Cargar mapa
+    QPixmap mapa("OpenSprite/map1.png");
+
+    if (mapa.isNull()) {
+        qDebug("Error: No se pudo cargar el mapa.");
+    } else {
+        // Añadir mapa a la escena
+        scene->addPixmap(mapa);
+        scene->setSceneRect(0, 0, mapa.width(), mapa.height());
+
+        // Tamaño visible de la ventana
+        int anchoVentana = 700;
+        int altoVentana = 700;
+
+        this->resize(anchoVentana, altoVentana);
+        view->setGeometry(0, 0, anchoVentana, altoVentana);
+
+        view->resetTransform();
+        view->scale(2.2, 2.2);  // Escalado visual opcional
+
+        view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    }
+
+    // ------------------------------------------Caballero ----------------------------------------------------------------------------------
+    // Cargar Knight-Walk
+    walkSheet = QPixmap("OpenSprite/Knight-Walk.png");
+    if (walkSheet.isNull()) {
+        qDebug("Error: No se pudo cargar el Knight-Walk.");
+    }
+
+    // Cargar Knight-Idle
+    idleSheet = QPixmap("OpenSprite/Knight-Idle.png");
+    if (idleSheet.isNull()) {
+        qDebug("Error: No se pudo cargar el Knight-Idle.");
+    }
+
+    if (!idleSheet.isNull()) {
+        QPixmap frame = idleSheet.copy(0, 0, 100, 100);
+        player = scene->addPixmap(frame);
+        player->setPos(120, 160);
+    }
+
+    // Crear Timer de movimiento
+    moveTimer = new QTimer(this);
+    connect(moveTimer, &QTimer::timeout, this, &GameWindow::updateMovement);
+
+    // Crear Timer de Idle
+    idleTimer = new QTimer(this);
+    connect(idleTimer, &QTimer::timeout, this, &GameWindow::updateIdle);
+    mundoCambiado = false;
+    playerSpeed = 5;
+
+
+    //------------------------------------------------- colisiones villac++ --------------------------------------------------------
+    QGraphicsRectItem *bloque = scene->addRect(1, 1, 334, 127);
+    bloque->setBrush(Qt::transparent);
+    bloque->setPen(Qt::NoPen);
+    bloqueadores.append(bloque);
+
+    QGraphicsRectItem *bloque2 = scene->addRect(70, 200, 29, 29);
+    bloque2->setBrush(Qt::transparent);
+    bloque2->setPen(Qt::NoPen);
+    bloqueadores.append(bloque2);
+
+    QGraphicsRectItem *bloque3 = scene->addRect(44, 136, 44, 10);
+    bloque3->setBrush(Qt::transparent);
+    bloque3->setPen(Qt::NoPen);
+    bloqueadores.append(bloque3);
+
+    QGraphicsRectItem *bloque4 = scene->addRect(29, 156, 23, 22);
+    bloque4->setBrush(Qt::transparent);
+    bloque4->setPen(Qt::NoPen);
+    bloqueadores.append(bloque4);
+
+    QGraphicsRectItem *bloque5 = scene->addRect(24, 180, 10, 75);
+    bloque5->setBrush(Qt::transparent);
+    bloque5->setPen(Qt::NoPen);
+    bloqueadores.append(bloque5);
+
+    QGraphicsRectItem *bloque6 = scene->addRect(9, 265, 11, 48);
+    bloque6->setBrush(Qt::transparent);
+    bloque6->setPen(Qt::NoPen);
+    bloqueadores.append(bloque6);
+
+    QGraphicsRectItem *bloque7 = scene->addRect(26, 316, 11, 49);
+    bloque7->setBrush(Qt::transparent);
+    bloque7->setPen(Qt::NoPen);
+    bloqueadores.append(bloque7);
+
+    QGraphicsRectItem *bloque8 = scene->addRect(43, 348, 11, 50);
+    bloque8->setBrush(Qt::transparent);
+    bloque8->setPen(Qt::NoPen);
+    bloqueadores.append(bloque8);
+
+    QGraphicsRectItem *bloque9 = scene->addRect(55, 396, 30, 50);
+    bloque9->setBrush(Qt::transparent);
+    bloque9->setPen(Qt::NoPen);
+    bloqueadores.append(bloque9);
+
+    QGraphicsRectItem *bloque10 = scene->addRect(85, 412, 17, 38);
+    bloque10->setBrush(Qt::transparent);
+    bloque10->setPen(Qt::NoPen);
+    bloqueadores.append(bloque10);
+
+    QGraphicsRectItem *bloque11 = scene->addRect(52, 450, 17, 19);
+    bloque11->setBrush(Qt::transparent);
+    bloque11->setPen(Qt::NoPen);
+    bloqueadores.append(bloque11);
+
+    QGraphicsRectItem *bloque12 = scene->addRect(35, 478, 17, 19);
+    bloque12->setBrush(Qt::transparent);
+    bloque12->setPen(Qt::NoPen);
+    bloqueadores.append(bloque12);
+
+    QGraphicsRectItem *bloque13 = scene->addRect(17, 497, 17, 16);
+    bloque13->setBrush(Qt::transparent);
+    bloque13->setPen(Qt::NoPen);
+    bloqueadores.append(bloque13);
+
+    QGraphicsRectItem *bloque14 = scene->addRect(8, 518, 11, 72);
+    bloque14->setBrush(Qt::transparent);
+    bloque14->setPen(Qt::NoPen);
+    bloqueadores.append(bloque14);
+
+    QGraphicsRectItem *bloque15 = scene->addRect(21, 586, 16, 16);
+    bloque15->setBrush(Qt::transparent);
+    bloque15->setPen(Qt::NoPen);
+    bloqueadores.append(bloque15);
+
+    QGraphicsRectItem *bloque16 = scene->addRect(46, 600, 25, 16);
+    bloque16->setBrush(Qt::transparent);
+    bloque16->setPen(Qt::NoPen);
+    bloqueadores.append(bloque16);
+
+    QGraphicsRectItem *bloque17 = scene->addRect(74, 615, 60, 16);
+    bloque17->setBrush(Qt::transparent);
+    bloque17->setPen(Qt::NoPen);
+    bloqueadores.append(bloque17);
+
+    QGraphicsRectItem *bloque18 = scene->addRect(133, 631, 95, 14);
+    bloque18->setBrush(Qt::transparent);
+    bloque18->setPen(Qt::NoPen);
+    bloqueadores.append(bloque18);
+
+    QGraphicsRectItem *bloque19 = scene->addRect(225, 613, 26, 14);
+    bloque19->setBrush(Qt::transparent);
+    bloque19->setPen(Qt::NoPen);
+    bloqueadores.append(bloque19);
+
+    QGraphicsRectItem *bloque20 = scene->addRect(242, 598, 26, 14);
+    bloque20->setBrush(Qt::transparent);
+    bloque20->setPen(Qt::NoPen);
+    bloqueadores.append(bloque20);
+
+    QGraphicsRectItem *bloque21 = scene->addRect(255, 569, 26, 23);
+    bloque21->setBrush(Qt::transparent);
+    bloque21->setPen(Qt::NoPen);
+    bloqueadores.append(bloque21);
+
+    QGraphicsRectItem *bloque22 = scene->addRect(275, 550, 26, 23);
+    bloque22->setBrush(Qt::transparent);
+    bloque22->setPen(Qt::NoPen);
+    bloqueadores.append(bloque22);
+
+    QGraphicsRectItem *bloque23 = scene->addRect(290, 519, 26, 23);
+    bloque23->setBrush(Qt::transparent);
+    bloque23->setPen(Qt::NoPen);
+    bloqueadores.append(bloque23);
+
+    QGraphicsRectItem *bloque24 = scene->addRect(306, 483, 26, 31);
+    bloque24->setBrush(Qt::transparent);
+    bloque24->setPen(Qt::NoPen);
+    bloqueadores.append(bloque24);
+
+    QGraphicsRectItem *bloque25 = scene->addRect(320, 316, 8, 184);
+    bloque25->setBrush(Qt::transparent);
+    bloque25->setPen(Qt::NoPen);
+    bloqueadores.append(bloque25);
+
+    QGraphicsRectItem *bloque26 = scene->addRect(301, 189, 8, 136);
+    bloque26->setBrush(Qt::transparent);
+    bloque26->setPen(Qt::NoPen);
+    bloqueadores.append(bloque26);
+
+    QGraphicsRectItem *bloque27 = scene->addRect(286, 199, 8, 18);
+    bloque27->setBrush(Qt::transparent);
+    bloque27->setPen(Qt::NoPen);
+    bloqueadores.append(bloque27);
+
+    QGraphicsRectItem *bloque28 = scene->addRect(270, 179, 16, 17);
+    bloque28->setBrush(Qt::transparent);
+    bloque28->setPen(Qt::NoPen);
+    bloqueadores.append(bloque28);
+
+    QGraphicsRectItem *bloque29 = scene->addRect(240, 163, 23, 17);
+    bloque29->setBrush(Qt::transparent);
+    bloque29->setPen(Qt::NoPen);
+    bloqueadores.append(bloque29);
+
+    QGraphicsRectItem *bloque30 = scene->addRect(208, 134, 24, 30);
+    bloque30->setBrush(Qt::transparent);
+    bloque30->setPen(Qt::NoPen);
+    bloqueadores.append(bloque30);
+
+    QGraphicsRectItem *bloque31 = scene->addRect(273, 364, 16, 22);
+    bloque31->setBrush(Qt::transparent);
+    bloque31->setPen(Qt::NoPen);
+    bloqueadores.append(bloque31);
+
+    QGraphicsRectItem *bloque32 = scene->addRect(137, 281, 40, 71);
+    bloque32->setBrush(Qt::transparent);
+    bloque32->setPen(Qt::NoPen);
+    bloqueadores.append(bloque32);
+
+    QGraphicsRectItem *bloque33 = scene->addRect(164, 284, 16, 68);
+    bloque33->setBrush(Qt::transparent);
+    bloque33->setPen(Qt::NoPen);
+    bloqueadores.append(bloque33);
+
+    QGraphicsRectItem *bloque34 = scene->addRect(184, 305, 16, 47);
+    bloque34->setBrush(Qt::transparent);
+    bloque34->setPen(Qt::NoPen);
+    bloqueadores.append(bloque34);
+
+    QGraphicsRectItem *bloque35 = scene->addRect(193, 315, 20, 38);
+    bloque35->setBrush(Qt::transparent);
+    bloque35->setPen(Qt::NoPen);
+    bloqueadores.append(bloque35);
+
+    QGraphicsRectItem *bloque36 = scene->addRect(206, 326, 19, 27);
+    bloque36->setBrush(Qt::transparent);
+    bloque36->setPen(Qt::NoPen);
+    bloqueadores.append(bloque36);
+
+
+    QGraphicsRectItem *bloque37 = scene->addRect(174, 346, 19, 27);
+    bloque37->setBrush(Qt::transparent);
+    bloque37->setPen(Qt::NoPen);
+    bloqueadores.append(bloque37);
+
+    QGraphicsRectItem *bloque38 = scene->addRect(188, 359, 37, 18);
+    bloque38->setBrush(Qt::transparent);
+    bloque38->setPen(Qt::NoPen);
+    bloqueadores.append(bloque38);
+
+    QGraphicsRectItem *bloque39 = scene->addRect(79, 286, 20, 29);
+    bloque39->setBrush(Qt::transparent);
+    bloque39->setPen(Qt::NoPen);
+    bloqueadores.append(bloque39);
+
+    QGraphicsRectItem *bloque40 = scene->addRect(227, 223, 2, 30);
+    bloque40->setBrush(Qt::transparent);
+    bloque40->setPen(Qt::NoPen);
+    bloqueadores.append(bloque40);
+
+    QGraphicsRectItem *bloque41 = scene->addRect(187, 223, 2, 29);
+    bloque41->setBrush(Qt::transparent);
+    bloque41->setPen(Qt::NoPen);
+    bloqueadores.append(bloque41);
+
+    QGraphicsRectItem *bloque42 = scene->addRect(187, 225, 42, 1);
+    bloque42->setBrush(Qt::transparent);
+    bloque42->setPen(Qt::NoPen);
+    bloqueadores.append(bloque42);
+
+    QGraphicsRectItem *bloque43 = scene->addRect(225, 414, 4, 8);
+    bloque43->setBrush(Qt::transparent);
+    bloque43->setPen(Qt::NoPen);
+    bloqueadores.append(bloque43);
+
+    QGraphicsRectItem *bloque44 = scene->addRect(145, 458, 34, 40);
+    bloque44->setBrush(Qt::transparent);
+    bloque44->setPen(Qt::NoPen);
+    bloqueadores.append(bloque44);
+
+    QGraphicsRectItem *bloque45 = scene->addRect(148, 498, 17, 64);
+    bloque45->setBrush(Qt::transparent);
+    bloque45->setPen(Qt::NoPen);
+    bloqueadores.append(bloque45);
+
+    QGraphicsRectItem *bloque46 = scene->addRect(163, 558, 14, 29);
+    bloque46->setBrush(Qt::transparent);
+    bloque46->setPen(Qt::NoPen);
+    bloqueadores.append(bloque46);
+
+    QGraphicsRectItem *bloque47 = scene->addRect(130, 545, 29, 15);
+    bloque47->setBrush(Qt::transparent);
+    bloque47->setPen(Qt::NoPen);
+    bloqueadores.append(bloque47);
+
+    QGraphicsRectItem *bloque48 = scene->addRect(81, 532, 40, 12);
+    bloque48->setBrush(Qt::transparent);
+    bloque48->setPen(Qt::NoPen);
+    bloqueadores.append(bloque48);
+
+    QGraphicsRectItem *bloque49 = scene->addRect(83, 539, 12, 21);
+    bloque49->setBrush(Qt::transparent);
+    bloque49->setPen(Qt::NoPen);
+    bloqueadores.append(bloque49);
+
+    QGraphicsRectItem *bloque50 = scene->addRect(135, 475, 1, 38);
+    bloque50->setBrush(Qt::transparent);
+    bloque50->setPen(Qt::NoPen);
+    bloqueadores.append(bloque50);
+
+    QGraphicsRectItem *bloque51 = scene->addRect(122, 489, 17, 22);
+    bloque51->setBrush(Qt::transparent);
+    bloque51->setPen(Qt::NoPen);
+    bloqueadores.append(bloque51);
+
+    QGraphicsRectItem *bloque52 = scene->addRect(100, 506, 11, 22);
+    bloque52->setBrush(Qt::transparent);
+    bloque52->setPen(Qt::NoPen);
+    bloqueadores.append(bloque52);
+
+    QGraphicsRectItem *bloque53 = scene->addRect(242, 459, 15, 38);
+    bloque53->setBrush(Qt::transparent);
+    bloque53->setPen(Qt::NoPen);
+    bloqueadores.append(bloque53);
+
+    QGraphicsRectItem *bloque54 = scene->addRect(257, 445, 15, 34);
+    bloque54->setBrush(Qt::transparent);
+    bloque54->setPen(Qt::NoPen);
+    bloqueadores.append(bloque54);
+
+    QGraphicsRectItem *bloque55 = scene->addRect(229, 485, 22, 27);
+    bloque55->setBrush(Qt::transparent);
+    bloque55->setPen(Qt::NoPen);
+    bloqueadores.append(bloque55);
+
+    QGraphicsRectItem *bloque56 = scene->addRect(133, 211, 11, 11);
+    bloque56->setBrush(Qt::transparent);
+    bloque56->setPen(Qt::NoPen);
+    bloqueadores.append(bloque56);
+
+    //------------------------------------------------------------ Mago --------------------------------------------------------------------------------------------------
+
+    // Cargar Wizard-Idle
+    wizardIdleSheet = QPixmap("OpenSprite/Wizard-Idle.png");
+
+    if (wizardIdleSheet.isNull()) {
+        qDebug("Error: No se pudo cargar Wizard-Idle.");
+    } else {
+        QPixmap frame = wizardIdleSheet.copy(0, 0, 100, 100);
+        wizard = scene->addPixmap(frame);
+
+        wizard->setPos(125, 490);
+        bloqueadores.append(wizard);
+
+
+        wizardIdleFrameIndex = 0;
+        wizardIdleTimer = new QTimer(this);
+        connect(wizardIdleTimer, &QTimer::timeout, this, &GameWindow::updateWizardIdle);
+        wizardIdleTimer->start(250);
+
+
+    }
+
+
+    // ------------------------------------------------------------ Slime (NPC) --------------------------------------------------------------------------------------------------
+
+    slimeWalkSheet = QPixmap("OpenSprite/Slime-Walk.png");
+
+    if (slimeWalkSheet.isNull()) {
+        qDebug("Error: No se pudo cargar Slime-Walk.");
+    } else {
+        QPixmap frame = slimeWalkSheet.copy(0, 0, 100, 100);
+        slime = scene->addPixmap(frame);
+
+        slime->setPos(110, 350);
+        slime->setZValue(1);
+
+        slimeFrameIndex = 0;
+        slimeDx = 1.0;
+        slimeDy = 1.0;
+
+        slimeTimer = new QTimer(this);
+        connect(slimeTimer, &QTimer::timeout, this, &GameWindow::updateSlime);
+        slimeTimer->start(270);
+    }
+
+
+
+
+
+
+    //  Crear label del Mago
+    labelMago = scene->addText("Mago");
+    labelMago->setDefaultTextColor(Qt::yellow);
+    labelMago->setFont(QFont("Arial", 7, QFont::Bold));
+    labelMago->setZValue(2);
+    labelMago->setPos(wizard->x() + 20, wizard->y() + 120);
+    labelMago->setVisible(false);
+
+    //  Crear label del Slime
+    labelSlime = scene->addText("Slime");
+    labelSlime->setDefaultTextColor(Qt::green);
+    labelSlime->setFont(QFont("Arial", 9, QFont::Bold));
+    labelSlime->setZValue(2);
+    labelSlime->setPos(slime->x() + 20, slime->y() - 20);
+    labelSlime->setVisible(false);
+
+
+    this->setFocus();
+}
+
+GameWindow::~GameWindow()
+{
+}
+void GameWindow::wheelEvent(QWheelEvent *event)
+{
+    // Evita que el usuario use el scroll del mouse o touchpad para mover el mapa
+    event->ignore();  // Alternativa: no llamar a QDialog::wheelEvent(event);
+}
+
+//----------------------------------------------------- mago -------------------------------------------------------------
+void GameWindow::updateWizardIdle()
+{
+    if (!wizard) return;
+
+    int frameWidth = 100;
+    int frameHeight = 100;
+    int idleFrames = 6;
+
+    wizard->setPixmap(wizardIdleSheet.copy(wizardIdleFrameIndex * frameWidth, 0, frameWidth, frameHeight));
+
+    wizardIdleFrameIndex = (wizardIdleFrameIndex + 1) % idleFrames;
+}
+void GameWindow::checkWizardInteraction()
+{
+    if (!player || !wizard) return;
+    if (mundoCambiado || dialogoActivo) return;
+
+    qreal distance = QLineF(player->scenePos(), wizard->scenePos()).length();
+
+    if (distance < 35.0)
+    {
+        if (slimeTimer && slimeTimer->isActive()) slimeTimer->stop();
+        if (moveTimer && moveTimer->isActive()) moveTimer->stop();
+
+        dialogoWizard.clear();
+        dialogoWizard
+            << "Mago: ¡Saludos, caballero C++!"
+            << "Caballero: ¿Quién eres tú?"
+            << "Mago: Soy un mago de esta tierra... y necesito tu ayuda urgente."
+            << "Caballero: ¿Ayuda? ¿Por qué yo? ¿Qué está ocurriendo?"
+            << "Mago: El mundo corre peligro. Existe una piedra mágica llamada Éterium que mantenía el equilibrio."
+            << "Mago: Pero el jefe oscuro la destruyó, y sus fragmentos se han esparcido por todo el reino."
+            << "Caballero: ¿Y qué se supone que haga yo con eso?"
+            << "Mago: Solo un valiente como tú puede reunir los fragmentos, restaurar la piedra y vencer al jefe."
+            << "Caballero: No estoy seguro... No sé si puedo hacerlo."
+            << "Mago: No estarás solo. Mis aliadas, la Curandera y la Princesa C#, lucharán contigo."
+            << "Mago: Juntos, pueden devolver la paz al mundo. Solo necesitas dar el primer paso."
+            << "Caballero: ...Está bien. Lo haré. ¡Salvaré el mundo!";
+
+        fraseActualWizard = 0;
+        dialogoActivo = true;
+
+        // Cargar imagen de pergamino
+        QPixmap pergamino("OpenSprite/pergamino.PNG");
+        dialogoCaja = scene->addPixmap(pergamino);
+        dialogoCaja->setZValue(9);
+
+        // Escalado del pergamino
+        qreal escalaPergamino = 0.35;
+        dialogoCaja->setScale(escalaPergamino);
+
+        // Calcular posición centrada en la parte inferior
+        qreal anchoVisible = pergamino.width() * escalaPergamino;
+        qreal altoVisible  = pergamino.height() * escalaPergamino;
+
+        qreal posX = (scene->width() - anchoVisible) / 2;
+        qreal posY = scene->height() - altoVisible + 40;
+
+        dialogoCaja->setPos(posX, posY);
+
+        // Mostrar retrato
+        mostrarRetrato("Mago");
+
+        // Crear texto del diálogo
+        textoParcialWizard = "";
+        letraActualWizard = 0;
+
+        dialogoTexto = scene->addText(textoParcialWizard);
+        dialogoTexto->setDefaultTextColor(Qt::black);
+        dialogoTexto->setFont(QFont("Arial", 7, QFont::Normal));
+        dialogoTexto->setTextWidth(anchoVisible - 50);  // Ajustado
+        dialogoTexto->setZValue(11);
+        dialogoTexto->setPos(posX + 30, posY + 100);  // Ajustado
+
+        // Texto de ayuda
+        dialogoAyuda = scene->addText("[Espacio] → Siguiente");
+        dialogoAyuda->setDefaultTextColor(Qt::black);
+        dialogoAyuda->setFont(QFont("Arial", 6, QFont::Normal));
+        dialogoAyuda->setZValue(11);
+        dialogoAyuda->setPos(posX + anchoVisible - 115, posY + altoVisible - 150);  // Ajustado
+
+        // Iniciar timer
+        timerTextoWizard = new QTimer(this);
+        connect(timerTextoWizard, &QTimer::timeout, this, &GameWindow::updateLetraWizard);
+        timerTextoWizard->start(30);
+    }
+}
+
+
+
+
+void GameWindow::updateLetraWizard()
+{
+    if (fraseActualWizard >= dialogoWizard.size())
+    {
+        timerTextoWizard->stop();
+
+        if (retratoDialogo) {
+            scene->removeItem(retratoDialogo);
+            delete retratoDialogo;
+            retratoDialogo = nullptr;
+        }
+
+        return;
+    }
+
+    const QString &frase = dialogoWizard[fraseActualWizard];
+
+    if (letraActualWizard == 0)
+    {
+        if (frase.startsWith("Mago:")) {
+            mostrarRetrato("Mago");
+        } else if (frase.startsWith("Caballero:")) {
+            mostrarRetrato("Caballero");
+        }
+    }
+
+    if (letraActualWizard < frase.length())
+    {
+        textoParcialWizard += frase[letraActualWizard];
+        dialogoTexto->setPlainText(textoParcialWizard);
+        letraActualWizard++;
+    }
+    else
+    {
+        timerTextoWizard->stop();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+void GameWindow::checkSlimeInteraction()
+{
+    if (!player || !slime) return;
+
+    qreal distance = QLineF(player->scenePos(), slime->scenePos()).length();
+
+    if (distance < 20.0)
+    {
+        qDebug() << "¡Knight ha chocado con la babosa!";
+
+        if (slimeTimer && slimeTimer->isActive()) {
+            slimeTimer->stop();
+        }
+
+        if (moveTimer && moveTimer->isActive()) {
+            moveTimer->stop();
+        }
+
+        //this->setAttribute(Qt::WA_QuitOnClose, false);
+        //this->hide();
+        //QMessageBox::information(this, "¡Enemigo!", "Oh no, te has topado con una babosa enemiga!");
+        BattleWidget* batalla = new BattleWidget("BosqueJS", "slime");
+        batalla->show();
+        //this->hide();
+
+
+        if (labelSlime) {
+            scene->removeItem(labelSlime);
+            delete labelSlime;
+            labelSlime = nullptr;
+        }
+
+        if (slime) {
+            scene->removeItem(slime);
+            delete slime;
+            slime = nullptr;
+        }
+
+        currentDirection = None;
+
+        if (!idleSheet.isNull()) {
+            idleFrameIndex = 0;
+            idleTimer->start(250);
+        }
+        qDebug() << "Babosa eliminada. Knight en Idle.";
+    }
+}
+
+
+
+
+
+
+void GameWindow::cambiarAMundoNuevo()
+{
+
+    if (labelMago) {
+        scene->removeItem(labelMago);
+        delete labelMago;
+        labelMago = nullptr;
+    }
+
+    if (labelSlime) {
+        scene->removeItem(labelSlime);
+        delete labelSlime;
+        labelSlime = nullptr;
+    }
+
+    if (slimeTimer && slimeTimer->isActive()) {
+        slimeTimer->stop();
+    }
+
+    if (slime) {
+        scene->removeItem(slime);
+        delete slime;
+        slime = nullptr;
+    }
+
+    scene->clear();
+    bloqueadores.clear();
+
+    QPixmap nuevoMapa("OpenSprite/Scene Overview2.png");
+
+    if (nuevoMapa.isNull()) {
+        qDebug("Error: No se pudo cargar el nuevo mapa.");
+        return;
+    }
+
+
+    QGraphicsPixmapItem *mapItem = scene->addPixmap(nuevoMapa);
+    mapItem->setZValue(-1);
+    scene->setSceneRect(0, 0, nuevoMapa.width(), nuevoMapa.height());
+    view->setFixedSize(700, 700);
+    this->setFixedSize(700, 700);
+
+
+    view->resetTransform();
+    view->scale(1.2, 1.2);
+
+    // Crear Knight
+    if (!idleSheet.isNull()) {
+        QPixmap frame = idleSheet.copy(0, 0, 100, 100);
+        player = scene->addPixmap(frame);
+        player->setZValue(1);
+        player->setPos(600, 1);
+        view->centerOn(player);
+
+
+        // ESCALAR Knight:
+        player->setScale(1.6);
+    }
+
+    // Crear Wizard
+    if (!wizardIdleSheet.isNull()) {
+        QPixmap frame = wizardIdleSheet.copy(0, 0, 100, 100);
+        wizard = scene->addPixmap(frame);
+        wizard->setZValue(1);
+        wizard->setPos(552, 1);
+
+        wizard->setScale(1.6);
+
+        bloqueadores.append(wizard);
+
+    }
+
+    // ------------------------------------------------------------ Armored Axeman (NPC) --------------------------------------------------------------------------------------------------
+
+    axemanIdleSheet = QPixmap("OpenSprite/Armored Axeman-Idle.png");
+
+    if (axemanIdleSheet.isNull()) {
+        qDebug("Error: No se pudo cargar Armored Axeman-Idle.");
+    } else {
+        QPixmap frame = axemanIdleSheet.copy(0, 0, 100, 100);
+        axeman = scene->addPixmap(frame);
+
+        axeman->setPos(500, 600);
+        axeman->setZValue(1);
+        axeman->setScale(2.0);
+        bloqueadores.append(axeman);
+
+        axemanIdleFrameIndex = 0;
+        axemanIdleTimer = new QTimer(this);
+        connect(axemanIdleTimer, &QTimer::timeout, this, &GameWindow::updateAxemanIdle);
+        axemanIdleTimer->start(250);
+    }
+
+
+    // colisiones exterior
+    QGraphicsRectItem *bloqueNuevo1 = scene->addRect(567, 16, 213, 10);
+    bloqueNuevo1->setBrush(Qt::transparent);
+    bloqueNuevo1->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo1);
+
+    QGraphicsRectItem *bloqueNuevo2 = scene->addRect(748, 34, 49, 32);
+    bloqueNuevo2->setBrush(Qt::transparent);
+    bloqueNuevo2->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo2);
+
+    QGraphicsRectItem *bloqueNuevo3 = scene->addRect(783, 74, 139, 149);
+    bloqueNuevo3->setBrush(Qt::transparent);
+    bloqueNuevo3->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo3);
+
+    QGraphicsRectItem *bloqueNuevo4 = scene->addRect(871, 210, 45, 52);
+    bloqueNuevo4->setBrush(Qt::transparent);
+    bloqueNuevo4->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo4);
+
+    QGraphicsRectItem *bloqueNuevo5 = scene->addRect(909, 233, 45, 91);
+    bloqueNuevo5->setBrush(Qt::transparent);
+    bloqueNuevo5->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo5);
+
+    QGraphicsRectItem *bloqueNuevo6 = scene->addRect(939, 295, 9, 212);
+    bloqueNuevo6->setBrush(Qt::transparent);
+    bloqueNuevo6->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo6);
+
+    QGraphicsRectItem *bloqueNuevo7 = scene->addRect(957, 465, 139, 16);
+    bloqueNuevo7->setBrush(Qt::transparent);
+    bloqueNuevo7->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo7);
+
+    QGraphicsRectItem *bloqueNuevo8 = scene->addRect(1075, 453, 38, 356);
+    bloqueNuevo8->setBrush(Qt::transparent);
+    bloqueNuevo8->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo8);
+
+    QGraphicsRectItem *bloqueNuevo9 = scene->addRect(870, 729, 201, 193);
+    bloqueNuevo9->setBrush(Qt::transparent);
+    bloqueNuevo9->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo9);
+
+    QGraphicsRectItem *bloqueNuevo10 = scene->addRect(1003, 913, 29, 192);
+    bloqueNuevo10->setBrush(Qt::transparent);
+    bloqueNuevo10->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo10);
+
+    QGraphicsRectItem *bloqueNuevo11 = scene->addRect(958, 969, 30, 51);
+    bloqueNuevo11->setBrush(Qt::transparent);
+    bloqueNuevo11->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo11);
+
+    QGraphicsRectItem *bloqueNuevo12 = scene->addRect(882, 1014, 123, 110);
+    bloqueNuevo12->setBrush(Qt::transparent);
+    bloqueNuevo12->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo12);
+
+    QGraphicsRectItem *bloqueNuevo13 = scene->addRect(593, 1071, 300, 41);
+    bloqueNuevo13->setBrush(Qt::transparent);
+    bloqueNuevo13->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo13);
+
+    QGraphicsRectItem *bloqueNuevo14 = scene->addRect(812, 1040, 13, 24);
+    bloqueNuevo14->setBrush(Qt::transparent);
+    bloqueNuevo14->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo14);
+
+    QGraphicsRectItem *bloqueNuevo15 = scene->addRect(717, 1031, 13, 32);
+    bloqueNuevo15->setBrush(Qt::transparent);
+    bloqueNuevo15->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo15);
+
+    QGraphicsRectItem *bloqueNuevo16 = scene->addRect(161, 1013, 443, 128);
+    bloqueNuevo16->setBrush(Qt::transparent);
+    bloqueNuevo16->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo16);
+
+    QGraphicsRectItem *bloqueNuevo17 = scene->addRect(162, 806, 55, 296);
+    bloqueNuevo17->setBrush(Qt::transparent);
+    bloqueNuevo17->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo17);
+
+    QGraphicsRectItem *bloqueNuevo18 = scene->addRect(212, 972, 43, 42);
+    bloqueNuevo18->setBrush(Qt::transparent);
+    bloqueNuevo18->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo18);
+
+    QGraphicsRectItem *bloqueNuevo19 = scene->addRect(115, 661, 169, 229);
+    bloqueNuevo19->setBrush(Qt::transparent);
+    bloqueNuevo19->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo19);
+
+    QGraphicsRectItem *bloqueNuevo20 = scene->addRect(136, 416, 25, 323);
+    bloqueNuevo20->setBrush(Qt::transparent);
+    bloqueNuevo20->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo20);
+
+    QGraphicsRectItem *bloqueNuevo21 = scene->addRect(136, 271, 150, 188);
+    bloqueNuevo21->setBrush(Qt::transparent);
+    bloqueNuevo21->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo21);
+
+    QGraphicsRectItem *bloqueNuevo22 = scene->addRect(289, 232, 26, 162);
+    bloqueNuevo22->setBrush(Qt::transparent);
+    bloqueNuevo22->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo22);
+
+    QGraphicsRectItem *bloqueNuevo23 = scene->addRect(319, 94, 90, 150);
+    bloqueNuevo23->setBrush(Qt::transparent);
+    bloqueNuevo23->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo23);
+
+
+    QGraphicsRectItem *bloqueNuevo24 = scene->addRect(396, 42, 171, 82);
+    bloqueNuevo24->setBrush(Qt::transparent);
+    bloqueNuevo24->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo24);
+
+    QGraphicsRectItem *bloqueNuevo25 = scene->addRect(554, 35, 53, 36);
+    bloqueNuevo25->setBrush(Qt::transparent);
+    bloqueNuevo25->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo25);
+
+    //colisiones internas
+    QGraphicsRectItem *bloqueNuevo26 = scene->addRect(707, 146, 64, 49);
+    bloqueNuevo26->setBrush(Qt::transparent);
+    bloqueNuevo26->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo26);
+
+    QGraphicsRectItem *bloqueNuevo27 = scene->addRect(595, 152, 36, 50);
+    bloqueNuevo27->setBrush(Qt::transparent);
+    bloqueNuevo27->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo27);
+
+    QGraphicsRectItem *bloqueNuevo28 = scene->addRect(578, 178, 17, 27);
+    bloqueNuevo28->setBrush(Qt::transparent);
+    bloqueNuevo28->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo28);
+
+    QGraphicsRectItem *bloqueNuevo29 = scene->addRect(429, 128, 17, 27);
+    bloqueNuevo29->setBrush(Qt::transparent);
+    bloqueNuevo29->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo29);
+
+    QGraphicsRectItem *bloqueNuevo30 = scene->addRect(787, 220, 17, 27);
+    bloqueNuevo30->setBrush(Qt::transparent);
+    bloqueNuevo30->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo30);
+
+    QGraphicsRectItem *bloqueNuevo31 = scene->addRect(801, 335, 122, 1);
+    bloqueNuevo31->setBrush(Qt::transparent);
+    bloqueNuevo31->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo31);
+
+    QGraphicsRectItem *bloqueNuevo32 = scene->addRect(804, 335, 1, 164);
+    bloqueNuevo32->setBrush(Qt::transparent);
+    bloqueNuevo32->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo32);
+
+    QGraphicsRectItem *bloqueNuevo33 = scene->addRect(818, 497, 40, 82);
+    bloqueNuevo33->setBrush(Qt::transparent);
+    bloqueNuevo33->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo33);
+
+    QGraphicsRectItem *bloqueNuevo34 = scene->addRect(806, 454, 25, 51);
+    bloqueNuevo34->setBrush(Qt::transparent);
+    bloqueNuevo34->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo34);
+
+    QGraphicsRectItem *bloqueNuevo35 = scene->addRect(802, 600, 1, 62);
+    bloqueNuevo35->setBrush(Qt::transparent);
+    bloqueNuevo35->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo35);
+
+    QGraphicsRectItem *bloqueNuevo36 = scene->addRect(874, 657, 27, 62);
+    bloqueNuevo36->setBrush(Qt::transparent);
+    bloqueNuevo36->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo36);
+
+    QGraphicsRectItem *bloqueNuevo37 = scene->addRect(922, 573, 1, 146);
+    bloqueNuevo37->setBrush(Qt::transparent);
+    bloqueNuevo37->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo37);
+
+    QGraphicsRectItem *bloqueNuevo38 = scene->addRect(921, 482, 1, 42);
+    bloqueNuevo38->setBrush(Qt::transparent);
+    bloqueNuevo38->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo38);
+
+    QGraphicsRectItem *bloqueNuevo39 = scene->addRect(937, 615, 9, 42);
+    bloqueNuevo39->setBrush(Qt::transparent);
+    bloqueNuevo39->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo39);
+
+    QGraphicsRectItem *bloqueNuevo40 = scene->addRect(803, 652, 1, 80);
+    bloqueNuevo40->setBrush(Qt::transparent);
+    bloqueNuevo40->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo40);
+
+    QGraphicsRectItem *bloqueNuevo41 = scene->addRect(583, 816, 179, 63);
+    bloqueNuevo41->setBrush(Qt::transparent);
+    bloqueNuevo41->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo41);
+
+    QGraphicsRectItem *bloqueNuevo42 = scene->addRect(699, 859, 56, 55);
+    bloqueNuevo42->setBrush(Qt::transparent);
+    bloqueNuevo42->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo42);
+
+    QGraphicsRectItem *bloqueNuevo43 = scene->addRect(385, 883, 253, 35);
+    bloqueNuevo43->setBrush(Qt::transparent);
+    bloqueNuevo43->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo43);
+
+    QGraphicsRectItem *bloqueNuevo44 = scene->addRect(384, 886, 1, 63);
+    bloqueNuevo44->setBrush(Qt::transparent);
+    bloqueNuevo44->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo44);
+
+    QGraphicsRectItem *bloqueNuevo45 = scene->addRect(313, 884, 1, 63);
+    bloqueNuevo45->setBrush(Qt::transparent);
+    bloqueNuevo45->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo45);
+
+    QGraphicsRectItem *bloqueNuevo46 = scene->addRect(418, 815, 207, 1);
+    bloqueNuevo46->setBrush(Qt::transparent);
+    bloqueNuevo46->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo46);
+
+    QGraphicsRectItem *bloqueNuevo47 = scene->addRect(362, 751, 49, 41);
+    bloqueNuevo47->setBrush(Qt::transparent);
+    bloqueNuevo47->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo47);
+
+    QGraphicsRectItem *bloqueNuevo48 = scene->addRect(351, 565, 1, 180);
+    bloqueNuevo48->setBrush(Qt::transparent);
+    bloqueNuevo48->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo48);
+
+    QGraphicsRectItem *bloqueNuevo49 = scene->addRect(284, 546, 1, 180);
+    bloqueNuevo49->setBrush(Qt::transparent);
+    bloqueNuevo49->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo49);
+
+    QGraphicsRectItem *bloqueNuevo50 = scene->addRect(355, 562, 111, 31);
+    bloqueNuevo50->setBrush(Qt::transparent);
+    bloqueNuevo50->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo50);
+
+    QGraphicsRectItem *bloqueNuevo51 = scene->addRect(168, 615, 22, 37);
+    bloqueNuevo51->setBrush(Qt::transparent);
+    bloqueNuevo51->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo51);
+
+    QGraphicsRectItem *bloqueNuevo52 = scene->addRect(265, 433, 29, 48);
+    bloqueNuevo52->setBrush(Qt::transparent);
+    bloqueNuevo52->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo52);
+
+    QGraphicsRectItem *bloqueNuevo53 = scene->addRect(475, 494, 1, 67);
+    bloqueNuevo53->setBrush(Qt::transparent);
+    bloqueNuevo53->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo53);
+
+    QGraphicsRectItem *bloqueNuevo54 = scene->addRect(475, 498, 97, 41);
+    bloqueNuevo54->setBrush(Qt::transparent);
+    bloqueNuevo54->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo54);
+
+    QGraphicsRectItem *bloqueNuevo55 = scene->addRect(557, 505, 18, 59);
+    bloqueNuevo55->setBrush(Qt::transparent);
+    bloqueNuevo55->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo55);
+
+    QGraphicsRectItem *bloqueNuevo56 = scene->addRect(638, 496, 1, 65);
+    bloqueNuevo56->setBrush(Qt::transparent);
+    bloqueNuevo56->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo56);
+
+    QGraphicsRectItem *bloqueNuevo57 = scene->addRect(638, 496, 91, 40);
+    bloqueNuevo57->setBrush(Qt::transparent);
+    bloqueNuevo57->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo57);
+
+    QGraphicsRectItem *bloqueNuevo58 = scene->addRect(703, 539, 14, 23);
+    bloqueNuevo58->setBrush(Qt::transparent);
+    bloqueNuevo58->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo58);
+
+    QGraphicsRectItem *bloqueNuevo59 = scene->addRect(730, 334, 1, 162);
+    bloqueNuevo59->setBrush(Qt::transparent);
+    bloqueNuevo59->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo59);
+
+    QGraphicsRectItem *bloqueNuevo60 = scene->addRect(512, 334, 219, 1);
+    bloqueNuevo60->setBrush(Qt::transparent);
+    bloqueNuevo60->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo60);
+
+    QGraphicsRectItem *bloqueNuevo61 = scene->addRect(329, 369, 52, 34);
+    bloqueNuevo61->setBrush(Qt::transparent);
+    bloqueNuevo61->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo61);
+
+    QGraphicsRectItem *bloqueNuevo62 = scene->addRect(453, 369, 52, 34);
+    bloqueNuevo62->setBrush(Qt::transparent);
+    bloqueNuevo62->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo62);
+
+    QGraphicsRectItem *bloqueNuevo63 = scene->addRect(450, 370, 1, 65);
+    bloqueNuevo63->setBrush(Qt::transparent);
+    bloqueNuevo63->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo63);
+
+    QGraphicsRectItem *bloqueNuevo64 = scene->addRect(382, 370, 1, 65);
+    bloqueNuevo64->setBrush(Qt::transparent);
+    bloqueNuevo64->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo64);
+
+    QGraphicsRectItem *bloqueNuevo65 = scene->addRect(324, 251, 31, 34);
+    bloqueNuevo65->setBrush(Qt::transparent);
+    bloqueNuevo65->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo65);
+
+    QGraphicsRectItem *bloqueNuevo66 = scene->addRect(409, 265, 14, 40);
+    bloqueNuevo66->setBrush(Qt::transparent);
+    bloqueNuevo66->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo66);
+
+    QGraphicsRectItem *bloqueNuevo67 = scene->addRect(507, 275, 1, 88);
+    bloqueNuevo67->setBrush(Qt::transparent);
+    bloqueNuevo67->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo67);
+
+    QGraphicsRectItem *bloqueNuevo68 = scene->addRect(425, 270, 80, 1);
+    bloqueNuevo68->setBrush(Qt::transparent);
+    bloqueNuevo68->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo68);
+
+
+    currentDirection = None;
+    moveTimer->stop();
+    playerSpeed = 8;
+
+
+    qDebug(" Nuevo mundo cargado.");
+    dialogoSegundoMapa.clear();
+    dialogoSegundoMapa
+        << "Caballero: ¡ESPERA! ¿Cómo hiciste eso? ¿Dónde estamos? ¿Cómo lograste traerme aquí?"
+        << "Brujo: Tranquilo, no olvides que soy mago... y los magos hacemos magia. Esta es una tierra sagrada,"
+           "  y yo soy su protector. Pero al perderse el Éterium, esta tierra quedó herida y fragmentada."
+        << "Caballero: Ya veo... El Éterium realmente es importante."
+        << "Brujo: Lo es. Mantiene el equilibrio de nuestro mundo. Sin él, todos estamos en peligro."
+        << "Caballero: ¿Y qué puedo hacer? No quiero que mi hogar acabe destruido."
+        << "Brujo: Deberás enfrentarte a grandes desafíos. Pero no estarás solo. Harás aliados en el camino."
+           " Tu misión es reunir todos los fragmentos del Éterium para restaurar la paz."
+        << "Caballero: Pero... no podré hacerlo solo."
+        << "Brujo: Ya te lo advertí antes: mis aliadas, la Curandera y la Princesa C#, estarán contigo."
+        << "Caballero: Ah... cierto, lo había olvidado. Entonces dime, ¿por dónde empiezo?"
+        << "Brujo: Tu primera misión es ayudar a Steve Latin. Los ogros del jefe secuestraron a su hermano."
+           " Él está cerca de aquí. Debes encontrarlo y ofrecerle tu ayuda."
+        << "Caballero: ¿Qué pasó con su hermano?"
+        << "Brujo: Creemos que logró robar un fragmento del Éterium, pero los ogros lo capturaron."
+        << "Caballero: Entiendo. Entonces ayudaré a Steve Latin... y juntos, salvaremos este mundo.";
+
+    fraseActualSegundoMapa = 0;
+    dialogoActivo = true;
+
+    // Eliminar diálogo anterior si existía
+    if (dialogoCaja) { scene->removeItem(dialogoCaja); delete dialogoCaja; dialogoCaja = nullptr; }
+    if (dialogoTexto) { scene->removeItem(dialogoTexto); delete dialogoTexto; dialogoTexto = nullptr; }
+    if (dialogoAyuda) { scene->removeItem(dialogoAyuda); delete dialogoAyuda; dialogoAyuda = nullptr; }
+    if (retratoDialogo) { scene->removeItem(retratoDialogo); delete retratoDialogo; retratoDialogo = nullptr; }
+
+    // Cargar imagen de pergamino
+    QPixmap pergamino("OpenSprite/pergamino.PNG");
+    dialogoCaja = scene->addPixmap(pergamino);
+    dialogoCaja->setZValue(10);
+
+    // Escalar y posicionar
+    qreal anchoVisible = pergamino.width() * 1.2;
+    qreal altoVisible  = pergamino.height() * 0.4;
+
+    // Escala horizontal mayor, altura igual
+    dialogoCaja->setTransform(QTransform::fromScale(1.2, 0.4));
+
+    qreal escalaPergamino = 0.80;
+    dialogoCaja->setScale(escalaPergamino);
+    qreal posX = (scene->width() - anchoVisible) / 2+130;
+    qreal posY = scene->height() - altoVisible - 550;
+    dialogoCaja->setPos(posX, posY);
+
+    // Mostrar retrato (empieza hablando el Caballero)
+    mostrarRetrato("Caballero");
+
+    // Texto de diálogo
+    textoParcialSegundoMapa = "";
+    letraActualSegundoMapa = 0;
+
+    dialogoTexto = scene->addText("");
+    dialogoTexto->setDefaultTextColor(Qt::black);
+    dialogoTexto->setFont(QFont("Arial", 9, QFont::Normal));
+    dialogoTexto->setTextWidth(anchoVisible - 400);
+    dialogoTexto->setZValue(11);
+    dialogoTexto->setPos(posX + 160, posY + 65);
+
+    // Texto de ayuda
+    dialogoAyuda = scene->addText("[Espacio] → Siguiente");
+    dialogoAyuda->setDefaultTextColor(Qt::black);
+    dialogoAyuda->setFont(QFont("Arial", 9));
+    dialogoAyuda->setZValue(11);
+    dialogoAyuda->setPos(posX + anchoVisible - 350, posY + altoVisible - 125);
+
+    // Timer del diálogo
+    if (!timerTextoSegundoMapa) {
+        timerTextoSegundoMapa = new QTimer(this);
+        connect(timerTextoSegundoMapa, &QTimer::timeout, this, &GameWindow::updateLetraSegundoMapa);
+    }
+    timerTextoSegundoMapa->start(40);
+
+
+
+}
+void GameWindow::updateAxemanIdle()
+{
+    if (!axeman) return;
+
+    int frameWidth = 100;
+    int frameHeight = 100;
+    int idleFrames = 6;
+
+    axeman->setPixmap(axemanIdleSheet.copy(axemanIdleFrameIndex * frameWidth, 0, frameWidth, frameHeight));
+
+    axemanIdleFrameIndex = (axemanIdleFrameIndex + 1) % idleFrames;
+}
+
+
+void GameWindow::updateLetraSegundoMapa()
+{
+    if (fraseActualSegundoMapa >= dialogoSegundoMapa.size())
+    {
+        timerTextoSegundoMapa->stop();
+
+
+        if (retratoDialogo) {
+            scene->removeItem(retratoDialogo);
+            delete retratoDialogo;
+            retratoDialogo = nullptr;
+        }
+
+        return;
+    }
+
+    QString fraseCompleta = dialogoSegundoMapa[fraseActualSegundoMapa];
+
+
+    if (letraActualSegundoMapa == 0)
+    {
+        if (fraseCompleta.startsWith("Mago:") || fraseCompleta.startsWith("Brujo:")) {
+            mostrarRetrato("Mago");
+        } else if (fraseCompleta.startsWith("Caballero:")) {
+            mostrarRetrato("Caballero");
+        }
+
+    }
+
+    if (letraActualSegundoMapa < fraseCompleta.length())
+    {
+        textoParcialSegundoMapa += fraseCompleta[letraActualSegundoMapa];
+        dialogoTexto->setPlainText(textoParcialSegundoMapa);
+        letraActualSegundoMapa++;
+    }
+    else
+    {
+        timerTextoSegundoMapa->stop();
+    }
+}
+
+
+
+
+
+// ------------------------------------------------- botones para mover caballero ------------------------------------------------
+void GameWindow::keyPressEvent(QKeyEvent *event)
+{
+    // Si estamos en diálogo, SOLO procesar Espacio:
+    if (dialogoActivo)
+    {
+        if (event->key() == Qt::Key_Space)
+        {
+            if (mundoCambiado)
+            {
+                if (timerTextoSegundoMapa && timerTextoSegundoMapa->isActive())
+                {
+                    timerTextoSegundoMapa->stop();
+                    dialogoTexto->setPlainText(dialogoSegundoMapa[fraseActualSegundoMapa]);
+                }
+                else
+                {
+                    fraseActualSegundoMapa++;
+
+                    if (fraseActualSegundoMapa < dialogoSegundoMapa.size())
+                    {
+                        letraActualSegundoMapa = 0;
+                        textoParcialSegundoMapa.clear();
+                        dialogoTexto->setPlainText("");
+
+                        timerTextoSegundoMapa->start(40);
+                    }
+                    else
+                    {
+                        // Fin del diálogo del segundo mapa
+                        scene->removeItem(dialogoCaja);
+                        scene->removeItem(dialogoTexto);
+                        scene->removeItem(dialogoAyuda);
+
+                        delete dialogoCaja;
+                        delete dialogoTexto;
+                        delete dialogoAyuda;
+
+                        dialogoCaja = nullptr;
+                        dialogoTexto = nullptr;
+                        dialogoAyuda = nullptr;
+
+                        if (retratoDialogo) {
+                            scene->removeItem(retratoDialogo);
+                            delete retratoDialogo;
+                            retratoDialogo = nullptr;
+                        }
+
+                        dialogoActivo = false;
+
+                        qDebug("¡Diálogo del segundo mapa terminado!");
+
+                    }
+                }
+            }
+            else
+            {
+                if (timerTextoWizard && timerTextoWizard->isActive())
+                {
+                    timerTextoWizard->stop();
+                    dialogoTexto->setPlainText(dialogoWizard[fraseActualWizard]);
+                }
+                else
+                {
+                    fraseActualWizard++;
+
+                    if (fraseActualWizard < dialogoWizard.size())
+                    {
+                        letraActualWizard = 0;
+                        textoParcialWizard.clear();
+
+                        dialogoTexto->setPlainText("");
+
+                        if (timerTextoWizard == nullptr)
+                        {
+                            timerTextoWizard = new QTimer(this);
+                            connect(timerTextoWizard, &QTimer::timeout, this, &GameWindow::updateLetraWizard);
+                        }
+
+                        timerTextoWizard->start(40);
+                    }
+                    else
+                    {
+                        // Fin del diálogo del PRIMER mapa
+                        scene->removeItem(dialogoCaja);
+                        scene->removeItem(dialogoTexto);
+                        scene->removeItem(dialogoAyuda);
+
+                        delete dialogoCaja;
+                        delete dialogoTexto;
+                        delete dialogoAyuda;
+
+                        dialogoCaja = nullptr;
+                        dialogoTexto = nullptr;
+                        dialogoAyuda = nullptr;
+
+                        //  Eliminar retrato al final del diálogo completo
+                        if (retratoDialogo) {
+                            scene->removeItem(retratoDialogo);
+                            delete retratoDialogo;
+                            retratoDialogo = nullptr;
+                        }
+
+                        dialogoActivo = false;
+
+                        // Preguntar si quiere ir al otro mundo
+                        QMessageBox::StandardButton reply;
+                        reply = QMessageBox::question(this, "Mago", "¿Deseas ir a otro mundo?",
+                                                      QMessageBox::Yes | QMessageBox::No);
+
+                        if (reply == QMessageBox::Yes)
+                        {
+                            qDebug("Cambiando a nuevo mundo...");
+                            cambiarAMundoNuevo();
+                            mundoCambiado = true;
+                        }
+                        else
+                        {
+                            qDebug("Te quedas en este mundo.");
+
+                            // Reactivar slimeTimer (Caballero se reactivará cuando toque teclas)
+                            if (slimeTimer && !slimeTimer->isActive()) {
+                                slimeTimer->start(150);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return;
+    }
+
+    if (!player) return;
+
+    if (event->isAutoRepeat()) return;
+
+
+    if (event->key() == Qt::Key_M) {
+        if (!mapaWidget) {
+            mapaWidget = new MapaWidget();
+            connect(mapaWidget, &MapaWidget::cerrarMapa, this, [=]() {
+                mapaWidget->deleteLater();
+                mapaWidget = nullptr;
+            });
+            mapaWidget->show();
+        } else {
+            mapaWidget->raise();
+            mapaWidget->activateWindow();
+        }
+    }
+
+
+    // Si pasamos a movimiento → detener Idle animado
+    if (idleTimer->isActive()) {
+        idleTimer->stop();
+        idleFrameIndex = 0;
+    }
+
+    switch (event->key()) {
+    case Qt::Key_Up:
+        currentDirection = Up;
+        if (!moveTimer->isActive()) moveTimer->start(100);
+        break;
+    case Qt::Key_Down:
+        currentDirection = Down;
+        if (!moveTimer->isActive()) moveTimer->start(100);
+        break;
+    case Qt::Key_Left:
+        currentDirection = Left;
+        if (!moveTimer->isActive()) moveTimer->start(100);
+        break;
+    case Qt::Key_Right:
+        currentDirection = Right;
+        if (!moveTimer->isActive()) moveTimer->start(100);
+        break;
+
+    default:
+        QWidget::keyPressEvent(event);
+    }
+}
+
+
+
+
+
+void GameWindow::keyReleaseEvent(QKeyEvent *event)
+{
+    if (event->isAutoRepeat()) return;
+
+    switch (event->key()) {
+    case Qt::Key_Up:
+    case Qt::Key_Down:
+    case Qt::Key_Left:
+    case Qt::Key_Right:
+        currentDirection = None;
+        moveTimer->stop();
+
+        // Iniciar Idle animado
+        if (!idleSheet.isNull()) {
+            idleFrameIndex = 0;
+            idleTimer->start(250);
+        }
+        break;
+    default:
+        QWidget::keyReleaseEvent(event);
+    }
+}
+
+void GameWindow::updateMovement()
+{
+    if (!player || currentDirection == None) return;
+
+    int step = playerSpeed;
+    int frameWidth = 100;
+    int frameHeight = 100;
+    int walkFrames = 8;
+
+    qreal dx = 0, dy = 0;
+
+    switch (currentDirection) {
+    case Up:
+        dy = -step;
+        break;
+    case Down:
+        dy = step;
+        break;
+    case Left:
+        dx = -step;
+        reflejarSprite = true;
+        break;
+    case Right:
+        dx = step;
+        reflejarSprite = false;
+        break;
+    default:
+        return;
+    }
+
+    // Verificar colisión
+    if (!colisionaConBloqueadores(player, dx, dy)) {
+        player->moveBy(dx, dy);
+        checkWizardInteraction();
+        checkSlimeInteraction();
+        view->centerOn(player);
+    } else {
+        qDebug("Colisión detectada!");
+    }
+
+    // Animación Walk con reflejo
+    frameIndex = (frameIndex + 1) % walkFrames;
+    QPixmap frame = walkSheet.copy(frameIndex * frameWidth, 0, frameWidth, frameHeight);
+
+    if (reflejarSprite) {
+        frame = frame.transformed(QTransform().scale(-1, 1));
+    }
+
+    player->setPixmap(frame);
+
+    // Mostrar/ocultar label del Mago
+    if (labelMago && wizard) {
+        qreal distanceMago = QLineF(player->scenePos(), wizard->scenePos()).length();
+        if (distanceMago < 50.0) {
+            labelMago->setVisible(true);
+            labelMago->setPos(wizard->x() + 20, wizard->y() - 20);
+        } else {
+            labelMago->setVisible(false);
+        }
+    }
+
+    // Mostrar/ocultar label del Slime
+    if (labelSlime && slime) {
+        qreal distanceSlime = QLineF(player->scenePos(), slime->scenePos()).length();
+        if (distanceSlime < 50.0) {
+            labelSlime->setVisible(true);
+            labelSlime->setPos(slime->x() + 20, slime->y() - 20);
+        } else {
+            labelSlime->setVisible(false);
+        }
+    }
+}
+
+void GameWindow::updateIdle()
+{
+    if (!player) return;
+
+    int frameWidth = 100;
+    int frameHeight = 100;
+    int idleFrames = 4;
+
+    QPixmap frame = idleSheet.copy(idleFrameIndex * frameWidth, 0, frameWidth, frameHeight);
+
+    if (reflejarSprite) {
+        frame = frame.transformed(QTransform().scale(-1, 1));
+    }
+
+    player->setPixmap(frame);
+
+
+    idleFrameIndex = (idleFrameIndex + 1) % idleFrames;
+}
+
+void GameWindow::updateSlime()
+{
+    if (!slime) return;
+
+    // Intentar mover en X
+    if (!colisionaConBloqueadores(slime, slimeDx, 0)) {
+        slime->moveBy(slimeDx, 0);
+    } else {
+        // Si colisiona → cambiar dirección X
+        slimeDx = -slimeDx;
+    }
+
+    // Intentar mover en Y
+    if (!colisionaConBloqueadores(slime, 0, slimeDy)) {
+        slime->moveBy(0, slimeDy);
+    } else {
+        // Si colisiona → cambiar dirección Y
+        slimeDy = -slimeDy;
+    }
+
+    int frameWidth = 100;
+    int frameHeight = 100;
+    int walkFrames = 6;
+
+    slime->setPixmap(slimeWalkSheet.copy(slimeFrameIndex * frameWidth, 0, frameWidth, frameHeight));
+
+    slimeFrameIndex = (slimeFrameIndex + 1) % walkFrames;
+}
+
+//------------------------------------------------colisiones villa c++ --------------------------------------------
+bool GameWindow::colisionaConBloqueadores(QGraphicsItem *item, qreal dx, qreal dy)
+{
+    if (!item) return false;
+
+    item->moveBy(dx, dy);
+    QList<QGraphicsItem*> colisiones = item->collidingItems();
+    item->moveBy(-dx, -dy);
+
+    for (QGraphicsItem *colItem : colisiones) {
+
+        if (bloqueadores.contains(colItem)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// -------------------------------------- Retratos de los dialogos -------------------------------------------------------
+void GameWindow::mostrarRetrato(const QString &quien)
+{
+    if (retratoDialogo) {
+        scene->removeItem(retratoDialogo);
+        delete retratoDialogo;
+        retratoDialogo = nullptr;
+    }
+
+    QPixmap retrato;
+    if (quien == "Mago") {
+        retrato = retratoMago;
+    } else if (quien == "Caballero") {
+        retrato = retratoCaballero;
+    }
+
+    QSize tamanoRetrato = mundoCambiado ? QSize(180, 180) : QSize(100, 100);
+
+    retratoDialogo = scene->addPixmap(retrato.scaled(tamanoRetrato, Qt::KeepAspectRatio));
+    retratoDialogo->setZValue(11);
+
+    if (dialogoCaja) {
+        qreal x = dialogoCaja->pos().x() + (mundoCambiado ? 25 : 10);
+        qreal y = dialogoCaja->pos().y() + (mundoCambiado ? 25 : 30);
+        retratoDialogo->setPos(x, y);
+    } else {
+        retratoDialogo->setPos(15, scene->height() - 290);
+    }
+}
+
+
+
+
+

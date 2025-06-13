@@ -6,7 +6,7 @@
 
 MapaWidget::MapaWidget(QWidget *parent) : QWidget(parent), zonaActual("")
 {
-    setFixedSize(800, 600);
+    setFixedSize(800, 700);
 
     if(!cargarFondo()) {
         fondoMapa = QPixmap(size());
@@ -68,6 +68,10 @@ void MapaWidget::crearInterfaz()
 {
     btnRegresar = new QPushButton("Regresar", this);
     btnRegresar->setGeometry(10, 10, 100, 30);
+    connect(btnRegresar, &QPushButton::clicked, this, [=]() {
+        emit cerrarMapa();
+        this->close();
+    });
 
     lblZonaActual = new QLabel("Selecciona una zona", this);
     lblZonaActual->setGeometry(120, 10, 300, 30);
@@ -77,6 +81,13 @@ void MapaWidget::crearInterfaz()
     lblConexiones->setGeometry(10, 550, 780, 40);
     lblConexiones->setStyleSheet("color: white; background-color: rgba(0,0,0,150);");
     lblConexiones->setAlignment(Qt::AlignCenter);
+
+    lblTodasRutas = new QLabel(this);
+    lblTodasRutas->setGeometry(10, 650, 780, 40);
+    lblTodasRutas->setStyleSheet("color: white; background-color: rgba(0,0,0,150); font-size: 12px;");
+    lblTodasRutas->setAlignment(Qt::AlignCenter);
+    lblTodasRutas->setWordWrap(true);
+
 }
 
 QPoint MapaWidget::obtenerPosicionZona(const QString& zona) const
@@ -187,9 +198,18 @@ void MapaWidget::mousePressEvent(QMouseEvent *event)
 
                 if (!rutaActual.isEmpty()) {
                     lblConexiones->setText("Ruta más corta: " + rutaActual.join(" -> "));
+
+                    QList<QList<QString>> rutas = grafo.todasLasRutas(zonaInicio, zonaFin);
+                    QStringList rutasTexto;
+                    for (const QList<QString>& r : rutas) {
+                        rutasTexto << r.join(" -> ");
+                    }
+                    lblTodasRutas->setText("El Resto de Rutas:\n" + rutasTexto.join("\n"));
                 } else {
                     lblConexiones->setText("No hay ruta disponible.");
+                    lblTodasRutas->setText("");
                 }
+
 
                 zonaInicio.clear();
                 zonaFin.clear();

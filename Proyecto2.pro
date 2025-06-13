@@ -26,7 +26,8 @@ SOURCES += \
     personaje.cpp \
     princesa.cpp \
     skilltreeviewer.cpp \
-    slime.cpp
+    slime.cpp \
+    gamewindow.cpp
 
 HEADERS += \
     Aliados.h \
@@ -47,7 +48,9 @@ HEADERS += \
     personaje.h \
     princesa.h \
     skilltreeviewer.h \
-    slime.h
+    slime.h \
+    CustomGraphicsView.h \
+    gamewindow.h
 
 FORMS += \
     mainwindow.ui

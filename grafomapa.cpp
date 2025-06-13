@@ -1,4 +1,5 @@
 #include "GrafoMapa.h"
+#include <QQueue>
 
 GrafoMapa::GrafoMapa() {}
 
@@ -140,5 +141,60 @@ QList<QString> GrafoMapa::rutaMasCorta(const QString& origen, const QString& des
 
     return {};  // No se encontró ruta
 }
+
+
+QList<QList<QString>> GrafoMapa::todasLasRutas(const QString& origen, const QString& destino) const {
+    struct NodoRuta {
+        QString nodo;
+        QList<QString> camino;
+        int costo;
+    };
+
+    QList<QList<QString>> rutas;
+    QMap<QString, int> mejorCosto;
+
+    QQueue<NodoRuta> cola;
+    cola.enqueue({origen, {origen}, 0});
+    mejorCosto[origen] = 0;
+
+    while (!cola.isEmpty()) {
+        NodoRuta actual = cola.dequeue();
+
+        if (actual.nodo == destino) {
+            rutas.append(actual.camino);
+            continue;
+        }
+
+        for (const auto& vecino : obtenerConexiones(actual.nodo)) {
+            QString siguiente = vecino.first;
+            int peso = vecino.second;
+
+            if (!esConexionPermanente(actual.nodo, siguiente) && !esConexionActiva(actual.nodo, siguiente))
+                continue;
+
+            int nuevoCosto = actual.costo + peso;
+
+            if (!mejorCosto.contains(siguiente) || nuevoCosto <= mejorCosto[siguiente]) {
+                mejorCosto[siguiente] = nuevoCosto;
+                QList<QString> nuevoCamino = actual.camino;
+                nuevoCamino.append(siguiente);
+                cola.enqueue({siguiente, nuevoCamino, nuevoCosto});
+            }
+        }
+    }
+
+    QList<QString> rutaMasCortaActual = rutaMasCorta(origen, destino);
+
+    rutas.erase(std::remove_if(rutas.begin(), rutas.end(), [&](const QList<QString>& ruta) {
+                    return ruta == rutaMasCortaActual;
+                }), rutas.end());
+
+    std::sort(rutas.begin(), rutas.end(), [](const QList<QString>& a, const QList<QString>& b) {
+        return a.size() < b.size();
+    });
+
+    return rutas;
+}
+
 
 

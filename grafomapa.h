@@ -3,6 +3,7 @@
 
 #include <QMap>
 #include <QString>
+#include <QLabel>
 #include <QSet>
 #include <QList>
 
@@ -22,6 +23,8 @@ public:
     QList<QString> obtenerAdyacentes(const QString& zona) const;
     QList<QPair<QString, int>> obtenerConexiones(const QString& zona) const;
     QList<QString> rutaMasCorta(const QString& origen, const QString& destino) const;
+    QList<QList<QString>> todasLasRutas(const QString& origen, const QString& destino) const;
+
 
 
     // Explorador
@@ -40,6 +43,7 @@ private:
 
     QMap<QString, QMap<QString, Conexion>> grafo;
     QSet<QString> zonas;
+
 
 
 

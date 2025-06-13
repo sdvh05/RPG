@@ -25,18 +25,11 @@ Inventario* inventarioGlobal = nullptr;
 
 int main(int argc, char *argv[])
 {
-    /*QApplication a(argc, argv);
+    QApplication a(argc, argv);
     MainWindow w;
     w.show();
-    return a.exec();*/
-    QApplication a(argc, argv);
+    //return a.exec();
 
-    QPixmap test("Personajes/Aliados/Caballero/Knight-Idle.png");
-    if (test.isNull()) {
-        qDebug() << "ERROR cargando imagen desde ruta relativa.";
-    } else {
-        qDebug() << "Imagen cargada correctamente.";
-    }
 
     /*
     Curandera* personaje = new Curandera();
@@ -45,8 +38,8 @@ int main(int argc, char *argv[])
 */
 
    // QApplication a(argc, argv);
-    BattleWidget* batalla = new BattleWidget("BosqueJS", "ogros normales");
-    batalla->show();
+    //BattleWidget* batalla = new BattleWidget("BosqueJS", "ogros normales");
+    //batalla->show();
     //return a.exec();
 
     inventarioGlobal = new Inventario();
