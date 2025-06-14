@@ -64,7 +64,8 @@ public:
 
 
 
-    void recibirDanio(int cantidad);
+    //void recibirDanio(int cantidad);
+    bool recibirDanio(int cantidad);
     virtual void ataqueEspecial(std::vector<Personaje*>& aliados, std::vector<Personaje*>& enemigos);
     void restaurarVida(int cantidad);
     void restaurarMana(int cantidad);
@@ -89,6 +90,7 @@ protected slots:
 
 signals:
     void animacionTerminada(QString estado);
+    void esquivarSolicitado(Personaje* personaje, std::function<void()> onFinalizado);
 };
 
 #endif // PERSONAJE_H

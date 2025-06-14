@@ -1,4 +1,5 @@
 #include "BattleWidget.h"
+#include "personaje.h"
 #include "gamewindow.h"
 #include <QPainter>
 #include <QRandomGenerator>
@@ -21,7 +22,6 @@ BattleWidget::BattleWidget(const QString& lugar, const QString& enemigo, QWidget
     crearInterfaz();
     CargarAliados();
     MostrarAliados();
-
     CargarEnemigos(enemigo);
     showFondo(lugar);
 
@@ -31,7 +31,6 @@ BattleWidget::BattleWidget(const QString& lugar, const QString& enemigo, QWidget
     //CargarEnemigos("elite");
     //CargarEnemigos("rider");
     //CargarEnemigos("armored");
-
     //showFondo("Desierto");
 
     updateTimer = new QTimer(this);
@@ -774,7 +773,6 @@ void BattleWidget::CaminarParaAtacar(Personaje* atacante, Personaje* objetivo, s
 
     int offset = atacante->esAliadoPersonaje() ? +60 : -60;
     QPoint puntoObjetivo(destino.x() - offset, destino.y());
-
     QRect rectDestino(puntoObjetivo, atacante->getPosicion().size());
 
     atacante->setEstado("walk");
@@ -790,13 +788,22 @@ void BattleWidget::CaminarParaAtacar(Personaje* atacante, Personaje* objetivo, s
             mover->stop();
 
             atacante->setEstado("attack");
-            objetivo->recibirDanio(atacante->getAtaque());
-            eliminarMuertos();
-            update();
 
-            QTimer::singleShot(800, this, [=]() {
-                CaminarDeVuelta(atacante, onFinalizado);
-            });
+            // Aquí decidimos si esquiva
+            if (objetivo->recibirDanio(atacante->getAtaque())) {
+                animacionEsquivar(objetivo, [=]() {
+                    QTimer::singleShot(600, this, [=]() {
+                        CaminarDeVuelta(atacante, onFinalizado);
+                    });
+                });
+            } else {
+                eliminarMuertos();
+                update();
+
+                QTimer::singleShot(800, this, [=]() {
+                    CaminarDeVuelta(atacante, onFinalizado);
+                });
+            }
 
         } else {
             QRect nuevo(actual.x() + dx, actual.y() + dy, actual.width(), actual.height());
@@ -808,6 +815,7 @@ void BattleWidget::CaminarParaAtacar(Personaje* atacante, Personaje* objetivo, s
 
     mover->start(40);
 }
+
 
 void BattleWidget::CaminarDeVuelta(Personaje* personaje, std::function<void()> onFinalizado) {
     personaje->setEstado("walk");
@@ -847,6 +855,69 @@ void BattleWidget::mostrarEfectoCuracion(Personaje* personaje) {
 
     // Eliminar 1s
     QTimer::singleShot(1000, efecto, &QLabel::deleteLater);
+}
+
+
+
+void BattleWidget::animacionEsquivar(Personaje* personaje, std::function<void()> onFinalizado) {
+    if (!personaje) {
+        if (onFinalizado) onFinalizado();
+        return;
+    }
+
+    QRect origen = personaje->getPosicion();
+
+    // Movimiento hacia atrás: -20 si aliado, +20 si enemigo
+    int desplazamiento = personaje->esAliadoPersonaje() ? -20 : +20;
+    QRect rectEsquivar(origen.x() + desplazamiento, origen.y(), origen.width(), origen.height());
+
+    personaje->setEstado("walk");
+
+    // Primer movimiento: hacia atrás
+    QTimer* moverAtras = new QTimer(this);
+    connect(moverAtras, &QTimer::timeout, this, [=]() mutable {
+        QRect actual = personaje->getPosicion();
+        int dx = (rectEsquivar.x() - actual.x()) / 4;
+        int dy = (rectEsquivar.y() - actual.y()) / 4;
+
+        if (abs(dx) < 2 && abs(dy) < 2) {
+            personaje->setPosicion(rectEsquivar);
+            moverAtras->stop();
+
+            // Pausa breve al esquivar
+            QTimer::singleShot(300, this, [=]() {
+                // Volver a la posición original
+                QTimer* moverVuelta = new QTimer(this);
+                connect(moverVuelta, &QTimer::timeout, this, [=]() mutable {
+                    QRect actual = personaje->getPosicion();
+                    int dx = (origen.x() - actual.x()) / 4;
+                    int dy = (origen.y() - actual.y()) / 4;
+
+                    if (abs(dx) < 2 && abs(dy) < 2) {
+                        personaje->setPosicion(origen);
+                        moverVuelta->stop();
+                        personaje->setEstado("idle");
+                        if (onFinalizado) onFinalizado();
+                    } else {
+                        QRect nuevo(actual.x() + dx, actual.y() + dy, actual.width(), actual.height());
+                        personaje->setPosicion(nuevo);
+                    }
+
+                    update();
+                });
+
+                moverVuelta->start(40);
+            });
+
+        } else {
+            QRect nuevo(actual.x() + dx, actual.y() + dy, actual.width(), actual.height());
+            personaje->setPosicion(nuevo);
+        }
+
+        update();
+    });
+
+    moverAtras->start(40);
 }
 
 

@@ -26,8 +26,8 @@ Inventario* inventarioGlobal = nullptr;
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    MainWindow w;
-    w.show();
+    //MainWindow w;
+    // w.show();
     //return a.exec();
 
 
@@ -38,8 +38,8 @@ int main(int argc, char *argv[])
 */
 
    // QApplication a(argc, argv);
-    //BattleWidget* batalla = new BattleWidget("BosqueJS", "ogros normales");
-    //batalla->show();
+    BattleWidget* batalla = new BattleWidget("BosqueJS", "ogros normales");
+    batalla->show();
     //return a.exec();
 
     inventarioGlobal = new Inventario();

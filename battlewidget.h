@@ -44,6 +44,7 @@ public:
     void showFondo(const QString& ruta);
     QList<EfectoVisual*> efectosVisuales;
     void mostrarEfectoCuracion(Personaje* objetivo);
+    void animacionEsquivar(Personaje* personaje, std::function<void()> onFinalizado);
 
 
 

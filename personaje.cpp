@@ -1,6 +1,7 @@
 #include "Personaje.h"
 #include "InventarioWidget.h"
 #include <QDebug>
+#include <QRandomGenerator>
 
 Personaje::Personaje(QString nombre, int vida, int mana, int ataque, bool aliado)
     : nombre(nombre), vidaMax(vida), vidaActual(vida),
@@ -69,16 +70,26 @@ void Personaje::resetearDefensa() {
 }
 
 
-void Personaje::recibirDanio(int cantidad) {
+bool Personaje::recibirDanio(int cantidad) {
+    int chance = QRandomGenerator::global()->bounded(100); // 0-99
+    if (chance > 80) {
+        qDebug() << nombre << " esquivó el ataque!";
+        return true; // esquivó
+    }
+
     int danoReducido = qMax(0, cantidad - defensa);
     vidaActual = qMax(0, vidaActual - danoReducido);
 
-    if (vidaActual == 0) {
+    if (vidaActual == 0)
         setEstado("death");
-    } else {
+    else
         setEstado("hurt");
-    }
+
+    qDebug() << nombre << " recibió" << danoReducido << "de daño. Vida restante:" << vidaActual;
+    return false; // no esquivó
 }
+
+
 
 void Personaje::ataqueEspecial(std::vector<Personaje*>&, std::vector<Personaje*>&) {
     qDebug() << nombre << " no tiene ataque especial.";
