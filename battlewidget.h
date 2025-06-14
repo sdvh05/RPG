@@ -72,6 +72,10 @@ private:
     QLabel* lblImagenAliado;
     QLabel* lblTextoStats;
 
+    QWidget* contenedorStatsEnemigo;
+    QLabel* lblImagenEnemigo;
+    QLabel* lblTextoStatsEnemigo;
+
 
 
     void CargarAliados();

@@ -187,16 +187,16 @@ void BattleWidget::paintEvent(QPaintEvent*) {
         QRect vidaActualRect(pos.x(), pos.y() - 15, barWidth * vidaRatio, 5);
         painter.setBrush(Qt::green);
         painter.drawRect(vidaActualRect);
+
         // Resaltado del enemigo seleccionado
         if (e == enemigoSeleccionado) {
             QRect marco = pos.adjusted(-4, -4, 4, 4); // Un marco más amplio que no tapa
             painter.setPen(QPen(Qt::red, 3));
             painter.drawRect(marco);
         }
-
-
     }
 }
+
 
 void BattleWidget::crearInterfaz() {
     btnAtacar = new QPushButton("Atacar", this);
@@ -212,6 +212,7 @@ void BattleWidget::crearInterfaz() {
     font.setPointSize(12);
     lblSeleccion->setFont(font);
 
+    //WIDGET STATS ALIADO
     contenedorStatsAliado = new QWidget(this);
     contenedorStatsAliado->setGeometry(350, 10, 250, 90);
     contenedorStatsAliado->setStyleSheet("background-color: #2196F3; border: 2px solid white;");
@@ -222,6 +223,21 @@ void BattleWidget::crearInterfaz() {
     lblTextoStats->setGeometry(84, 7, 150, 75);
     lblTextoStats->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     lblTextoStats->setWordWrap(true);
+
+    //WIDGET ENEMIGO
+    contenedorStatsEnemigo = new QWidget(this);
+    contenedorStatsEnemigo->setGeometry(350, 110, 250, 90);
+    contenedorStatsEnemigo->setStyleSheet("background-color: #B71C1C; border: 2px solid white;");
+    contenedorStatsEnemigo->setVisible(false);
+    lblImagenEnemigo = new QLabel(contenedorStatsEnemigo);
+    lblImagenEnemigo->setGeometry(10, 10, 64, 64);
+    lblImagenEnemigo->setStyleSheet("background-color: white;");
+    lblTextoStatsEnemigo = new QLabel(contenedorStatsEnemigo);
+    lblTextoStatsEnemigo->setGeometry(84, 7, 150, 75);
+    lblTextoStatsEnemigo->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+    lblTextoStatsEnemigo->setWordWrap(true);
+    lblTextoStatsEnemigo->setStyleSheet("color: white;");
+
 
     QFont fontStats;
     fontStats.setPointSize(9);
@@ -397,6 +413,7 @@ void BattleWidget::accionSeleccionada(QString tipo) {
     accionesAliados.append({ personajeActual, tipo, objetivo });
 
     enemigoSeleccionado = nullptr;
+    contenedorStatsEnemigo->setVisible(false);
     indiceAliado++;
 
     if (indiceAliado < aliados.size()) {
@@ -463,6 +480,8 @@ void BattleWidget::actualizarColorBotones(const QString& nombrePersonaje) {
 
 void BattleWidget::ejecutarAccionesAliadas() {
     setBotonesHabilitados(false);
+    enemigoSeleccionado = nullptr;
+    contenedorStatsEnemigo->setVisible(false);
     if (accionesAliados.isEmpty()) return;
 
     int* index = new int(0);
@@ -473,8 +492,10 @@ void BattleWidget::ejecutarAccionesAliadas() {
             timer->stop();
             delete index;
             accionesAliados.clear();
-            eliminarMuertos(); // ← limpiar los muertos finales antes de turno enemigo
+            eliminarMuertos();
             faseActual = ENEMIGOS;
+            enemigoSeleccionado = nullptr;
+            contenedorStatsEnemigo->setVisible(false);
             ejecutarTurnoEnemigos();
             return;
         }
@@ -585,6 +606,8 @@ void BattleWidget::ejecutarTurnoEnemigos() {
             timer->stop();
             delete index;
             faseActual = PLANIFICAR;
+            enemigoSeleccionado = nullptr;
+            contenedorStatsEnemigo->setVisible(false);
             indiceAliado = 0;
             setBotonesHabilitados(true);
             eliminarMuertos();
@@ -677,15 +700,36 @@ void BattleWidget::mousePressEvent(QMouseEvent* event) {
     if (faseActual != PLANIFICAR || indiceAliado >= aliados.size()) return;
 
     QPoint clickPos = event->pos();
+    bool enemigoDetectado = false;
 
-    // Verifica si se ha hecho clic sobre algún enemigo
     for (Personaje* enemigo : enemigos) {
         if (enemigo->getPosicion().contains(clickPos)) {
             enemigoSeleccionado = enemigo;
-            qDebug() << "Enemigo seleccionado:" << enemigoSeleccionado->getNombre() << " "<<enemigoSeleccionado->getVidaActual();
+            enemigoDetectado = true;
+            qDebug() << "Enemigo seleccionado:" << enemigoSeleccionado->getNombre() << enemigoSeleccionado->getVidaActual();
+
+            // Actualizar imagen
+            QPixmap foto = enemigo->getFrameActual().scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            lblImagenEnemigo->setPixmap(foto);
+
+            // Actualizar texto
+            QString texto = QString("%1\nVida: %2/%3\nAtaque: %4")
+                                .arg(enemigo->getNombre())
+                                .arg(enemigo->getVidaActual())
+                                .arg(enemigo->getVidaMax())
+                                .arg(enemigo->getAtaque());
+
+            lblTextoStatsEnemigo->setText(texto);
+
+            contenedorStatsEnemigo->setVisible(true);
             update();
             break;
         }
+    }
+
+    if (!enemigoDetectado) {
+        enemigoSeleccionado = nullptr;
+        contenedorStatsEnemigo->setVisible(false);
     }
 }
 

@@ -432,9 +432,8 @@ GameWindow::GameWindow(QWidget *parent)
     this->setFocus();
 }
 
-GameWindow::~GameWindow()
-{
-}
+GameWindow::~GameWindow(){}
+
 void GameWindow::wheelEvent(QWheelEvent *event)
 {
     // Evita que el usuario use el scroll del mouse o touchpad para mover el mapa
