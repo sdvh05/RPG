@@ -111,6 +111,8 @@ void MapaWidget::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     painter.drawPixmap(0, 0, fondoMapa);
     dibujarGrafo(painter);
+
+
 }
 
 void MapaWidget::dibujarGrafo(QPainter &painter)
@@ -155,11 +157,15 @@ void MapaWidget::dibujarGrafo(QPainter &painter)
         painter.setPen(rutaPen);
 
         for (int i = 0; i < rutaActual.size() - 1; ++i) {
+            if (rutaActual[i].startsWith("(") || rutaActual[i + 1].startsWith("("))
+                continue;
+
             QPoint p1 = obtenerPosicionZona(rutaActual[i]);
             QPoint p2 = obtenerPosicionZona(rutaActual[i + 1]);
             painter.drawLine(p1, p2);
         }
     }
+
 
     // Dibujar zonas
     for(const QString& zona : grafo.obtenerZonas()) {
@@ -192,6 +198,7 @@ void MapaWidget::mousePressEvent(QMouseEvent *event)
                 lblZonaActual->setText("Destino: " + zonaFin);
 
                 rutaActual = grafo.rutaMasCorta(zonaInicio, zonaFin);
+
 
                 if (rutaActual.isEmpty())
                     lblConexiones->setText("");

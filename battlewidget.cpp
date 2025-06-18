@@ -14,13 +14,13 @@ extern Inventario* inventarioGlobal;
 
 
 
-BattleWidget::BattleWidget(const QString& lugar, const QString& enemigo, QWidget* parent)
-    : QWidget(parent)
+BattleWidget::BattleWidget(const QString& lugar, const QString& enemigo, QVector<Personaje*>& aliadosExistentes, QWidget* parent)
+    : QWidget(parent), aliados(aliadosExistentes)
 {
     setFixedSize(700, 700);
 
     crearInterfaz();
-    CargarAliados();
+    //CargarAliados();
     MostrarAliados();
     CargarEnemigos(enemigo);
     showFondo(lugar);
@@ -49,7 +49,7 @@ BattleWidget::BattleWidget(const QString& lugar, const QString& enemigo, QWidget
 }
 
 BattleWidget::~BattleWidget() {
-    for (Personaje* p : aliados) delete p;
+    //for (Personaje* p : aliados) delete p; -> YA NO BORRAR ALIADOS
     for (Personaje* e : enemigos) delete e;
 }
 
@@ -110,7 +110,7 @@ void BattleWidget::paintEvent(QPaintEvent*) {
         //qDebug() << p->getNombre() << " → Frame size:" << sprite.size() << " Pos:" << pos;
 
 
-        // Dibujar sprite o marcador si no cargó
+        // Dibujar sprite
         if (!sprite.isNull()) {
             painter.drawPixmap(pos, sprite);
         } else {
@@ -189,7 +189,7 @@ void BattleWidget::paintEvent(QPaintEvent*) {
 
         // Resaltado del enemigo seleccionado
         if (e == enemigoSeleccionado) {
-            QRect marco = pos.adjusted(-4, -4, 4, 4); // Un marco más amplio que no tapa
+            QRect marco = pos.adjusted(-4, -4, 4, 4);
             painter.setPen(QPen(Qt::red, 3));
             painter.drawRect(marco);
         }

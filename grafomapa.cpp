@@ -97,7 +97,6 @@ QList<QString> GrafoMapa::rutaMasCorta(const QString& origen, const QString& des
     distancias[origen] = 0;
 
     while (visitados.size() < zonas.size()) {
-        // Buscar el nodo no visitado con menor distancia
         QString nodoActual;
         int minDist = INT_MAX;
         for (const QString& zona : zonas) {
@@ -107,7 +106,7 @@ QList<QString> GrafoMapa::rutaMasCorta(const QString& origen, const QString& des
             }
         }
 
-        if (nodoActual.isEmpty()) break;  // No hay más accesibles
+        if (nodoActual.isEmpty()) break;
         visitados.insert(nodoActual);
 
         for (const auto& conexion : grafo[nodoActual].toStdMap()) {
@@ -115,7 +114,7 @@ QList<QString> GrafoMapa::rutaMasCorta(const QString& origen, const QString& des
             const Conexion& datos = conexion.second;
 
             if (!datos.esPermanente && !datos.activa)
-                continue;  // Ignorar conexiones condicionales inactivas
+                continue;
 
             int nuevaDist = distancias[nodoActual] + datos.peso;
             if (nuevaDist < distancias[vecino]) {
@@ -125,7 +124,6 @@ QList<QString> GrafoMapa::rutaMasCorta(const QString& origen, const QString& des
         }
     }
 
-    // Reconstruir camino
     QList<QString> ruta;
     QString actual = destino;
 
@@ -136,11 +134,17 @@ QList<QString> GrafoMapa::rutaMasCorta(const QString& origen, const QString& des
 
     if (actual == origen) {
         ruta.prepend(origen);
+        int total = 0;
+        for (int i = 0; i < ruta.size() - 1; ++i)
+            total += pesoConexion(ruta[i], ruta[i + 1]);
+
+        ruta.append("(" + QString::number(total) + " km)");
         return ruta;
     }
 
-    return {};  // No se encontró ruta
+    return {};
 }
+
 
 
 QList<QList<QString>> GrafoMapa::todasLasRutas(const QString& origen, const QString& destino) const {
@@ -161,7 +165,9 @@ QList<QList<QString>> GrafoMapa::todasLasRutas(const QString& origen, const QStr
         NodoRuta actual = cola.dequeue();
 
         if (actual.nodo == destino) {
-            rutas.append(actual.camino);
+            QList<QString> rutaFinal = actual.camino;
+            rutaFinal.append("(" + QString::number(actual.costo) + " km)");
+            rutas.append(rutaFinal);
             continue;
         }
 
@@ -195,6 +201,7 @@ QList<QList<QString>> GrafoMapa::todasLasRutas(const QString& origen, const QStr
 
     return rutas;
 }
+
 
 
 

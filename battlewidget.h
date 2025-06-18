@@ -31,7 +31,7 @@ class BattleWidget : public QWidget {
     };
 
 public:
-    explicit BattleWidget(const QString& lugar, const QString& enemigo, QWidget* parent = nullptr);
+    explicit BattleWidget(const QString& lugar, const QString& enemigo, QVector<Personaje*>& aliadosExistentes, QWidget* parent=nullptr);
     ~BattleWidget();
 
 

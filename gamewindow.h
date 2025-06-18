@@ -12,6 +12,15 @@
 #include <QList>
 #include "grafomapavisual.h"
 #include "grafomapa.h"
+#include "personaje.h"
+
+#include <QWidget>
+
+
+#include <QGraphicsTextItem>
+#include <QGraphicsEllipseItem>
+
+#include <QStringList>
 
 class GameWindow : public QWidget
 {
@@ -31,9 +40,24 @@ private slots:
     void updateMovement();
     void updateIdle();
     void updateWizardIdle();
+    void updateSlime2();
+    void checkSlime2Interaction();    // Colisión del segundo slime con el jugador
+    void cambiarAMundoNuevo();        // Cambio de mapa
 
+    // En private slots:
+    void checkAxemanInteraction();    // Detecta proximidad
+    void iniciarDialogoAxeman();      // Inicia diálogo de historia
+
+    void checkOrcInteraction();
+    void updateOrc();
+    void checkOrc2Interaction();
+    void updateOrc2();
+
+    // void cambiarAMundoTres();
 
 private:
+     QVector<Personaje*> aliados;
+
     MapaWidget* mapaWidget = nullptr;
     QGraphicsView *view;
     QGraphicsScene *scene;
@@ -62,7 +86,7 @@ private:
     void checkSlimeInteraction();
 
 
-    void cambiarAMundoNuevo();
+    // void cambiarAMundoNuevo();
 
     bool mundoCambiado;
     int playerSpeed;
@@ -122,10 +146,57 @@ private:
     bool reflejarSprite = false;
     void wheelEvent(QWheelEvent *event) override;
 
+    // Slime 2
+    QGraphicsPixmapItem* slime2 = nullptr;
+    QTimer* slime2Timer = nullptr;
+    int slime2FrameIndex = 0;
+    qreal slime2Dx = 0.0, slime2Dy = 0.0;
+    QGraphicsTextItem* labelSlime2 = nullptr;
+
+
+
+    QGraphicsEllipseItem* globoOvalo = nullptr;
+    QGraphicsTextItem* labelAxeman = nullptr;
+
+    QStringList frasesAxeman;
+    int fraseActualAxeman = 0;
+    QTimer* axemanTextoTimer = nullptr;
+
+    QPixmap retratoAxeman;
+
+    bool dialogoAxemanActivo = false;
+
+    bool dialogoAxemanYaMostrado = false;
+
+
+    QGraphicsPixmapItem *orc = nullptr;
+    QTimer *orcTimer = nullptr;
+    QPixmap orcWalkSheet;
+    int orcFrameIndex = 0;
+    qreal orcDx = 1.0, orcDy = 1.0;
+
+    QGraphicsPixmapItem *orc2 = nullptr;
+    QTimer *orc2Timer = nullptr;
+    int orc2FrameIndex = 0;
+    qreal orc2Dx = 1.0, orc2Dy = -1.0;
+
+
+    bool mundoTresActivo = false;
+    void cambiarAMundoTres();
+
+    QGraphicsRectItem* zonaTransicionMapaTres = nullptr;
+    bool regresoDesdeMapaTres = false;
+   // bool dialogoAxemanYaMostrado = false;
 
 
 };
 
 #endif // GAMEWINDOW_H
+
+
+
+
+
+
 
 

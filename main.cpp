@@ -12,7 +12,7 @@
 #include "BattleWidget.h"
 
 #include "grafomapavisual.h"
-
+#include "gamewindow.h"
 
 #include <QApplication>
 #include <QPixmap>
@@ -26,8 +26,8 @@ Inventario* inventarioGlobal = nullptr;
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    //MainWindow w;
-    // w.show();
+    MainWindow w;
+    w.show();
     //return a.exec();
 
 
@@ -38,8 +38,14 @@ int main(int argc, char *argv[])
 */
 
    // QApplication a(argc, argv);
-    BattleWidget* batalla = new BattleWidget("BosqueJS", "ogros normales");
-    batalla->show();
+
+    /*QVector<Personaje*> aliados;
+    aliados.append(new Curandera());
+    aliados.append(new Caballero());
+    aliados.append(new Princesa());
+    BattleWidget* batalla = new BattleWidget("BosqueJS", "ogros normales",aliados);
+    batalla->show();*/
+
     //return a.exec();
 
     inventarioGlobal = new Inventario();
