@@ -74,20 +74,21 @@ void BattleWidget::showFondo(const QString& ruta) {
         setFondo("Personajes/MapasCombate/Desierto.png");
     }
     if(ruta.contains("Castillo Java")){
-        setFondo("Personajes/MapasCombate/BosqueJS.png");
+        setFondo("Personajes/MapasCombate/CastilloJava.png");
     }
     if(ruta.contains("Castillo Codigo")){
-        setFondo("Personajes/MapasCombate/BosqueJS.png");
+        setFondo("Personajes/MapasCombate/CastilloCodigo.png");
     }
     if(ruta.contains("Subterraneo")){
-        setFondo("Personajes/MapasCombate/BosqueJS.png");
+        setFondo("Personajes/MapasCombate/BosqueJS.png"); //*
     }
     if(ruta.contains("Ruinas")){
-        setFondo("Personajes/MapasCombate/BosqueJS.png");
+        setFondo("Personajes/MapasCombate/Ruinas.png");
     }
-    else{
-        setFondo("Personajes/MapasCombate/BosqueJS.png");
-        }
+    //else{
+      //  setFondo("Personajes/MapasCombate/BosqueJS.png");
+        //}
+    qDebug() << ruta;
 
 }
 
@@ -296,8 +297,16 @@ void BattleWidget::MostrarAliados() {
 }
 
 void BattleWidget::MostrarEnemigos() {
-    int startY = 300;
+    int startY;
+    if(enemigos.size()==1)
+        startY=400;
+    else if(enemigos.size()==2)
+        startY=350;
+    else
+    startY = 300;
+
     for (int i = 0; i < enemigos.size(); ++i) {
+        qDebug() << enemigos.size();
         QRect pos(540, startY + i * 100, 64, 64);
         enemigos[i]->setPosicion(pos);
     }
@@ -332,22 +341,35 @@ void BattleWidget::CargarEnemigos(const QString& tipo) {
     } else if (tipo == "rider") {
         enemigos.append(new Ogro(Ogro::Rider));
         enemigos.append(new Ogro(Ogro::Rider));
-         enemigos.append(new Ogro(Ogro::Normal));
+        enemigos.append(new Ogro(Ogro::Normal));
 
     } else if (tipo == "armored") {
         enemigos.append(new Ogro(Ogro::Armored));
         enemigos.append(new Ogro(Ogro::Armored));
-         enemigos.append(new Ogro(Ogro::Normal));
+        enemigos.append(new Ogro(Ogro::Normal));
 
     } else if (tipo == "elite") {
-        enemigos.append(new Ogro(Ogro::Normal));
+        //enemigos.append(new Ogro(Ogro::Normal));
         enemigos.append(new Ogro(Ogro::Elite));
-        enemigos.append(new Ogro(Ogro::Normal));
+        //enemigos.append(new Ogro(Ogro::Normal));
 
+    } else if (tipo == "ENormal") {
+        for (int i = 0; i < 3; ++i)
+            enemigos.append(new Esqueleto(Esqueleto::ENormal));
+
+    } else if (tipo == "ESword") {
+        enemigos.append(new Esqueleto(Esqueleto::ESword));
+        enemigos.append(new Esqueleto(Esqueleto::ESword));
+
+    } else if (tipo == "EArmored") {
+        enemigos.append(new Esqueleto(Esqueleto::EArmored));
+        enemigos.append(new Esqueleto(Esqueleto::EArmored));
+        enemigos.append(new Esqueleto(Esqueleto::ENormal));
     }
 
     MostrarEnemigos();
 }
+
 
 
 
@@ -375,33 +397,33 @@ void BattleWidget::accionSeleccionada(QString tipo) {
 
     // Caso especial: Inventario
     if (tipo == "inventario") {
-        // Mostrar widget y esperar a que se cierre
-        personajeActual->abrirInventario(inventarioGlobal);
-
-
-        // Pausar botones y esperar a que termine
         setBotonesHabilitados(false);
 
+        personajeActual->abrirInventario(inventarioGlobal);
 
-            // Guardamos acción solo si se usó un objeto
-                accionesAliados.append({ personajeActual, "inventario", nullptr });
+        // Esperar a que se use un objeto
+        connect(personajeActual, &Personaje::objetoUsadoEnInventario, this, [=](const Objeto& obj) {
+            // Registrar la acción
+            accionesAliados.append({ personajeActual, "inventario", nullptr });
 
-
+            // Avanzar al siguiente aliado
             indiceAliado++;
+
             if (indiceAliado < aliados.size()) {
+                lblSeleccion->show();
                 lblSeleccion->setText("¿Qué hará " + aliados[indiceAliado]->getNombre() + "?");
                 actualizarColorBotones(aliados[indiceAliado]->getNombre());
                 setBotonesHabilitados(true);
             } else {
-                faseActual = EJECUTAR;
                 lblSeleccion->hide();
-                contenedorStatsAliado->hide();
+                faseActual = EJECUTAR;
                 ejecutarAccionesAliadas();
             }
+        });
 
-
-        return;
+        return; // Detener aquí hasta que se use un objeto
     }
+
 
     // Elegir objetivo (si no hay, al primero)
     Personaje* objetivo = (enemigoSeleccionado && enemigos.contains(enemigoSeleccionado))
@@ -746,17 +768,9 @@ void BattleWidget::verificarVictoria() {
                              });
 
     if (enemigosDerrotados) {
-        QMessageBox::information(this, "¡Victoria!", "¡Has derrotado a todos los enemigos!");
-        setBotonesHabilitados(false);
-        this->close();
-        lblSeleccion->hide();
-
-        faseActual = ESPERA;
+        PostBatalla(true);  // Ganamos
     } else if (aliadosDerrotados) {
-        QMessageBox::critical(this, "Derrota", "Todos tus personajes han sido derrotados...");
-        setBotonesHabilitados(false);
-        lblSeleccion->hide();
-        faseActual = ESPERA;
+        PostBatalla(false); // Perdimos
     }
 
 }
@@ -921,6 +935,41 @@ void BattleWidget::animacionEsquivar(Personaje* personaje, std::function<void()>
 }
 
 
+void BattleWidget::PostBatalla(bool victoria) {
+    QWidget* panel = new QWidget(this);
+    panel->setGeometry((width() - 300) / 2, (height() - 200) / 2, 300, 200);
+    panel->setStyleSheet("background-color: white; border: 3px solid black; border-radius: 15px;");
+
+    QLabel* mensaje = new QLabel(panel);
+    mensaje->setGeometry(20, 30, 260, 60);
+    mensaje->setAlignment(Qt::AlignCenter);
+    mensaje->setStyleSheet("font-size: 22px; font-weight: bold;");
+
+    if (victoria) {
+        panel->setStyleSheet("background-color: green; border: 3px solid black; border-radius: 15px;");
+        mensaje->setText("¡Victoria!");
+        mensaje->setStyleSheet("color: green; font-size: 22px; font-weight: bold;");
+
+    } else {
+        mensaje->setText("Derrota...");
+        mensaje->setStyleSheet("color: red; font-size: 22px; font-weight: bold;");
+        panel->setStyleSheet("background-color: red; border: 3px solid black; border-radius: 15px;");
+    }
+
+    QPushButton* btnContinuar = new QPushButton("Continuar", panel);
+    btnContinuar->setGeometry(100, 130, 100, 30);
+    btnContinuar->setText("Continuar");
+    btnContinuar->setStyleSheet("color: black; font-size: 15px; font-weight: bold;");
+    connect(btnContinuar, &QPushButton::clicked, this, [=]() {
+        panel->deleteLater();
+        this->close(); // Cerrar batalla
+    });
+
+    panel->show();
+    setBotonesHabilitados(false);
+    lblSeleccion->hide();
+    faseActual = ESPERA;
+}
 
 
 

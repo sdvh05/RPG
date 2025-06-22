@@ -6,11 +6,15 @@
 #include <QTimer>
 #include <QPushButton>
 #include <QLabel>
+
 #include "Curandera.h"
 #include "Caballero.h"
 #include "Princesa.h"
+
 #include "Slime.h"
 #include "ogro.h"
+#include "esqueletos.h"
+
 #include "EfectoVisual.h"
 
 
@@ -87,6 +91,8 @@ private:
 
     void MostrarEnemigos();
     void verificarVictoria();
+    void PostBatalla(bool victoria);
+
 
 
     void accionSeleccionada(QString tipo);

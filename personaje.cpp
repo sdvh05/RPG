@@ -206,6 +206,7 @@ void Personaje::abrirInventario(Inventario* inventario) {
         } else {
             qDebug() << "El objeto" << obj.nombre << "no tiene efecto directo sobre el personaje.";
         }
+         emit objetoUsadoEnInventario(obj);
     });
 }
 

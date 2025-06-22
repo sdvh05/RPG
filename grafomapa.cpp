@@ -155,18 +155,17 @@ QList<QList<QString>> GrafoMapa::todasLasRutas(const QString& origen, const QStr
     };
 
     QList<QList<QString>> rutas;
-    QMap<QString, int> mejorCosto;
 
     QQueue<NodoRuta> cola;
     cola.enqueue({origen, {origen}, 0});
-    mejorCosto[origen] = 0;
 
     while (!cola.isEmpty()) {
         NodoRuta actual = cola.dequeue();
 
         if (actual.nodo == destino) {
             QList<QString> rutaFinal = actual.camino;
-            rutaFinal.append("(" + QString::number(actual.costo) + " km)");
+            int total = actual.costo;
+            rutaFinal.append("(" + QString::number(total) + " km)");
             rutas.append(rutaFinal);
             continue;
         }
@@ -175,26 +174,35 @@ QList<QList<QString>> GrafoMapa::todasLasRutas(const QString& origen, const QStr
             QString siguiente = vecino.first;
             int peso = vecino.second;
 
+            // Solo si es conexión activa o permanente
             if (!esConexionPermanente(actual.nodo, siguiente) && !esConexionActiva(actual.nodo, siguiente))
                 continue;
 
-            int nuevoCosto = actual.costo + peso;
+            // Evitar ciclos
+            if (actual.camino.contains(siguiente))
+                continue;
 
-            if (!mejorCosto.contains(siguiente) || nuevoCosto <= mejorCosto[siguiente]) {
-                mejorCosto[siguiente] = nuevoCosto;
-                QList<QString> nuevoCamino = actual.camino;
-                nuevoCamino.append(siguiente);
-                cola.enqueue({siguiente, nuevoCamino, nuevoCosto});
-            }
+            int nuevoCosto = actual.costo + peso;
+            QList<QString> nuevoCamino = actual.camino;
+            nuevoCamino.append(siguiente);
+            cola.enqueue({siguiente, nuevoCamino, nuevoCosto});
         }
     }
 
-    QList<QString> rutaMasCortaActual = rutaMasCorta(origen, destino);
+    // Obtener ruta más corta real
+    QList<QString> rutaCorta = rutaMasCorta(origen, destino);
 
+    // Eliminarla de la lista de rutas encontradas
     rutas.erase(std::remove_if(rutas.begin(), rutas.end(), [&](const QList<QString>& ruta) {
-                    return ruta == rutaMasCortaActual;
+                    // Comparamos sin el peso final
+                    QList<QString> copia = ruta;
+                    copia.removeLast();
+                    QList<QString> cortaSinPeso = rutaCorta;
+                    cortaSinPeso.removeLast();
+                    return copia == cortaSinPeso;
                 }), rutas.end());
 
+    // Ordenar por longitud del camino (sin contar el km)
     std::sort(rutas.begin(), rutas.end(), [](const QList<QString>& a, const QList<QString>& b) {
         return a.size() < b.size();
     });

@@ -56,9 +56,11 @@ private slots:
     // void cambiarAMundoTres();
 
 private:
-     QVector<Personaje*> aliados;
+    QVector<Personaje*> aliados;
 
     MapaWidget* mapaWidget = nullptr;
+    InventarioWidget* inventarioUI = nullptr;
+
     QGraphicsView *view;
     QGraphicsScene *scene;
     QGraphicsPixmapItem *player;
@@ -186,17 +188,46 @@ private:
 
     QGraphicsRectItem* zonaTransicionMapaTres = nullptr;
     bool regresoDesdeMapaTres = false;
-   // bool dialogoAxemanYaMostrado = false;
+    // bool dialogoAxemanYaMostrado = false;
 
+    void cambiarAMundoCuatro();  // ← Nuevo slot para el mapa 4
+    QGraphicsRectItem* zonaTransicionAMapa4 = nullptr;  // Zona de transición desde mapa 2
+    bool mundoCuatroActivo = false;  // Si estás en el mapa 4
+
+
+    QGraphicsRectItem* zonaTransicionDesdeMapa4 = nullptr;
+
+    bool regresoDesdeMapaCuatro = false;
+    bool dialogoWizardYaMostrado = false;
+    bool puedeCambiarAMapa3 = false;
+
+    bool mundoCincoActivo = false;
+    bool puedeCambiarAMapa5 = false;
+
+    QGraphicsPixmapItem* zonaTransicionAMapa5 = nullptr;
+    void cambiarAMundoCinco();
+
+
+    // Estado del mundo
+    bool mundoSeisActivo = false;
+    bool puedeCambiarAMapa6 = false;
+
+    // Zona de transición desde mapa 4 a 6
+    QGraphicsRectItem* zonaTransicionAMapa6 = nullptr;
+
+    // Función para cambiar al mapa 6
+    void cambiarAMundoSeis();
+
+    QGraphicsRectItem* zonaTransicionDesdeMapa6 = nullptr;
+    bool puedeRegresarDesdeMapa6 = false;
+
+
+    QGraphicsRectItem* zonaTransicionAMapa5DesdeMapa6 = nullptr;
+
+    bool puedeCambiarAMapa5DesdeMapa6 = false;
+
+    QGraphicsRectItem* zonaTransicionAMapa3DesdeMapa5 = nullptr;
 
 };
 
 #endif // GAMEWINDOW_H
-
-
-
-
-
-
-
-

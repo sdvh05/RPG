@@ -39,11 +39,11 @@ int main(int argc, char *argv[])
 
    // QApplication a(argc, argv);
 
-    /*QVector<Personaje*> aliados;
+   /* QVector<Personaje*> aliados;
     aliados.append(new Curandera());
     aliados.append(new Caballero());
     aliados.append(new Princesa());
-    BattleWidget* batalla = new BattleWidget("BosqueJS", "ogros normales",aliados);
+    BattleWidget* batalla = new BattleWidget("Castillo Codigo", "ogros normales",aliados);
     batalla->show();*/
 
     //return a.exec();
@@ -56,6 +56,7 @@ int main(int argc, char *argv[])
     inventarioGlobal->agregarLlave();
     inventarioGlobal->agregarPoscionVida(3);
     inventarioGlobal->agregarPoscionMana(3);
+    inventarioGlobal->agregarDinero(100);
 
 
     //InventarioWidget* inventarioUI = new InventarioWidget(inventarioGlobal);

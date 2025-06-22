@@ -33,6 +33,7 @@ public:
     void agregarObjeto(const Objeto& obj);
     Objeto* obtenerObjeto(const QString& nombre);
     void usarObjeto(const QString& nombre);
+    bool gastarDinero(int cantidad);
 
     void recogerObjetos(QVector<Objeto*>& lista) const;
     void recogerPorTipo(const QString& tipo, QVector<Objeto*>& lista) const;
@@ -47,6 +48,8 @@ public: //Agregar items especificos
     void agregarPoscionVidaGrande(int valor=1);
     void agregarPoscionManaGrande(int valor=1);
     void agregarLlave(int valor=1);
+    void agregarDinero(int valor=1);
+
 
 
 };

@@ -31,23 +31,23 @@ void MapaWidget::inicializarGrafo()
     // Conexiones permanentes
     grafo.agregarConexion("ISLA", "Bosque JS", 40);
 
-    grafo.agregarConexion("Bosque JS", "Desierto", 24);
-    grafo.agregarConexion("Desierto", "Bosque JS", 24);
+    grafo.agregarConexion("Bosque JS", "Desierto", 20);
+    grafo.agregarConexion("Desierto", "Bosque JS", 20);
 
     grafo.agregarConexion("Desierto", "Castillo Java", 1);
     grafo.agregarConexion("Castillo Java", "Desierto", 1);
 
-    grafo.agregarConexion("Ruinas", "Castillo Codigo", 1);
-     grafo.agregarConexion("Castillo Codigo", "Ruinas", 1);
+    grafo.agregarConexion("Ruinas", "Castillo Codigo", 3);
+     grafo.agregarConexion("Castillo Codigo", "Ruinas", 3);
 
-    grafo.agregarConexion("Ruinas", "Bosque JS", 22);
-    grafo.agregarConexion("Bosque JS", "Ruinas", 22);
+    grafo.agregarConexion("Ruinas", "Bosque JS", 21);
+    grafo.agregarConexion("Bosque JS", "Ruinas", 21);
 
    // grafo.agregarConexion("Subterraneo", "Castillo Codigo", 27);
    // grafo.agregarConexion("Castillo Codigo", "Subterraneo", 27);
 
-    grafo.agregarConexion("Subterraneo", "Bosque JS", 3);
-    grafo.agregarConexion("Bosque JS", "Subterraneo", 3);
+    grafo.agregarConexion("Subterraneo", "Bosque JS", 9);
+    grafo.agregarConexion("Bosque JS", "Subterraneo", 9);
 
     grafo.agregarConexion("Subterraneo", "Ruinas", 18);
     grafo.agregarConexion("Ruinas", "Subterraneo", 18);
@@ -83,7 +83,7 @@ void MapaWidget::crearInterfaz()
     lblConexiones->setAlignment(Qt::AlignCenter);
 
     lblTodasRutas = new QLabel(this);
-    lblTodasRutas->setGeometry(10, 650, 780, 40);
+    lblTodasRutas->setGeometry(10, 625, 780, 50);
     lblTodasRutas->setStyleSheet("color: white; background-color: rgba(0,0,0,150); font-size: 12px;");
     lblTodasRutas->setAlignment(Qt::AlignCenter);
     lblTodasRutas->setWordWrap(true);
@@ -204,7 +204,7 @@ void MapaWidget::mousePressEvent(QMouseEvent *event)
                     lblConexiones->setText("");
 
                 if (!rutaActual.isEmpty()) {
-                    lblConexiones->setText("Ruta más corta: " + rutaActual.join(" -> "));
+                    lblConexiones->setText("Ruta más corta: (Ruta en Amarillo) \n" + rutaActual.join(" -> "));
 
                     QList<QList<QString>> rutas = grafo.todasLasRutas(zonaInicio, zonaFin);
                     QStringList rutasTexto;

@@ -15,6 +15,7 @@ SOURCES += \
     battlewidget.cpp \
     caballero.cpp \
     curandera.cpp \
+    esqueletos.cpp \
     files.cpp \
     grafomapa.cpp \
     grafomapavisual.cpp \
@@ -38,6 +39,7 @@ HEADERS += \
     battlewidget.h \
     caballero.h \
     curandera.h \
+    esqueletos.h \
     files.h \
     grafomapa.h \
     grafomapavisual.h \

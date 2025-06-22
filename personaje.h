@@ -91,6 +91,8 @@ protected slots:
 signals:
     void animacionTerminada(QString estado);
     void esquivarSolicitado(Personaje* personaje, std::function<void()> onFinalizado);
+    void objetoUsadoEnInventario(const Objeto& obj);
+
 };
 
 #endif // PERSONAJE_H

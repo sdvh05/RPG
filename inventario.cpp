@@ -104,6 +104,22 @@ NodoInventario* Inventario::getRaiz() const {
     return raiz;
 }
 
+bool Inventario::gastarDinero(int cantidad) {
+    Objeto* monedas = obtenerObjeto("Monedas");
+
+    if (monedas && monedas->cantidad >= cantidad) {
+        monedas->cantidad -= cantidad;
+        qDebug() << "Gastaste" << cantidad << "monedas. Quedan:" << monedas->cantidad;
+        return true;
+    } else {
+        qDebug() << "No tienes suficiente dinero. Tienes:"
+                 << (monedas ? monedas->cantidad : 0)
+                 << ", necesitas:" << cantidad;
+        return false;
+    }
+}
+
+
 
 //----------------------------------------
 void Inventario::agregarNucleo(int cantidad){
@@ -123,4 +139,7 @@ void Inventario::agregarPoscionManaGrande(int cantidad){
 }
 void Inventario::agregarLlave(int cantidad){
     agregarObjeto(Objeto("LLave", "Epico", "Llave", "Personajes/Items/Golden Key.png", cantidad, 1));
+}
+void Inventario::agregarDinero(int cantidad){
+    agregarObjeto(Objeto("Monedas", "Epico", "Dinero", "Personajes/Items/Golden Coin.png", cantidad, 1));
 }
