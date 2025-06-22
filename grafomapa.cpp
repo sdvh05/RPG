@@ -91,6 +91,7 @@ QList<QString> GrafoMapa::rutaMasCorta(const QString& origen, const QString& des
     QMap<QString, QString> anteriores;
     QSet<QString> visitados;
 
+    //INF
     for (const QString& zona : zonas) {
         distancias[zona] = INT_MAX;
     }
@@ -99,6 +100,8 @@ QList<QString> GrafoMapa::rutaMasCorta(const QString& origen, const QString& des
     while (visitados.size() < zonas.size()) {
         QString nodoActual;
         int minDist = INT_MAX;
+
+        // SELECCION DEL MiNIMO - Paso 2 de Dijkstra
         for (const QString& zona : zonas) {
             if (!visitados.contains(zona) && distancias[zona] < minDist) {
                 minDist = distancias[zona];
@@ -106,6 +109,7 @@ QList<QString> GrafoMapa::rutaMasCorta(const QString& origen, const QString& des
             }
         }
 
+        //Visitados
         if (nodoActual.isEmpty()) break;
         visitados.insert(nodoActual);
 
@@ -124,6 +128,7 @@ QList<QString> GrafoMapa::rutaMasCorta(const QString& origen, const QString& des
         }
     }
 
+    //Reconstruccion del camino desde destino hasta origen
     QList<QString> ruta;
     QString actual = destino;
 

@@ -28,7 +28,8 @@ SOURCES += \
     princesa.cpp \
     skilltreeviewer.cpp \
     slime.cpp \
-    gamewindow.cpp
+    gamewindow.cpp \
+    tiendawidget.cpp
 
 HEADERS += \
     Aliados.h \
@@ -52,7 +53,8 @@ HEADERS += \
     skilltreeviewer.h \
     slime.h \
     CustomGraphicsView.h \
-    gamewindow.h
+    gamewindow.h \
+    tiendawidget.h
 
 FORMS += \
     mainwindow.ui

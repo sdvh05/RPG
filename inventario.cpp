@@ -119,6 +119,13 @@ bool Inventario::gastarDinero(int cantidad) {
     }
 }
 
+int Inventario::getDineroActual(){
+    Objeto* monedas = buscar(raiz, "Monedas");
+    return monedas ? monedas->cantidad : 0;
+}
+
+
+
 
 
 //----------------------------------------

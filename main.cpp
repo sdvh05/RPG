@@ -5,6 +5,7 @@
 #include "personaje.h"
 #include "Aliados.h"
 #include "InventarioWidget.h"
+#include"tiendawidget.h"
 #include"inventario.h"
 #include "Objeto.h"
 
@@ -61,6 +62,9 @@ int main(int argc, char *argv[])
 
     //InventarioWidget* inventarioUI = new InventarioWidget(inventarioGlobal);
     //inventarioUI->show();
+
+    TiendaWidget* tienda = new TiendaWidget(inventarioGlobal);
+    tienda->show();
 
 
 

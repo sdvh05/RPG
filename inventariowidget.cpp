@@ -1,6 +1,7 @@
 #include "InventarioWidget.h"
 #include <QLabel>
 #include <QPixmap>
+#include <QPainter>
 #include <QDebug>
 #include <QHBoxLayout>
 #include <QEvent>
@@ -9,25 +10,66 @@
 InventarioWidget::InventarioWidget(Inventario* inv, QWidget* parent)
     : QWidget(parent), inventario(inv) {
 
+    crearInterfaz();
+    fondo.load("Personajes/MapasCombate/Inve.jpeg");
+    if (fondo.isNull())
+        qDebug() << "No se pudo cargar el fondo.";
+    actualizarVista();
+
+}
+
+void InventarioWidget::crearInterfaz() {
+    this->setFixedSize(700, 700);
+    this->setWindowTitle("Inventario");
+
     layoutPrincipal = new QVBoxLayout(this);
+    layoutPrincipal->setAlignment(Qt::AlignTop);
     setLayout(layoutPrincipal);
+
+    // Título superior
+    QLabel* titulo = new QLabel("Inventario");
+    titulo->setAlignment(Qt::AlignCenter);
+    titulo->setStyleSheet("font-size: 26px; font-weight: bold; padding: 20px;");
+    layoutPrincipal->addWidget(titulo);
+
+    // Contenedor centrado con scroll
+    QWidget* contenedorCentral = new QWidget(this);
+    contenedorCentral->setFixedSize(500, 400);
+    QVBoxLayout* layoutCentro = new QVBoxLayout(contenedorCentral);
 
     scrollArea = new QScrollArea(this);
     scrollArea->setWidgetResizable(true);
-    layoutPrincipal->addWidget(scrollArea);
+    scrollArea->setFrameShape(QFrame::NoFrame);
+    layoutCentro->addWidget(scrollArea);
 
     contenedor = new QWidget(this);
     layoutContenedor = new QVBoxLayout(contenedor);
     contenedor->setLayout(layoutContenedor);
     scrollArea->setWidget(contenedor);
 
+    QHBoxLayout* layoutContenedorCentrado = new QHBoxLayout();
+    layoutContenedorCentrado->addStretch();
+    layoutContenedorCentrado->addWidget(contenedorCentral);
+    layoutContenedorCentrado->addStretch();
+    layoutPrincipal->addLayout(layoutContenedorCentrado);
+
+    // Botón usar objeto
     botonUsar = new QPushButton("Usar objeto", this);
-    layoutPrincipal->addWidget(botonUsar);
+    botonUsar->setFixedWidth(150);
+    botonUsar->setStyleSheet("padding: 8px;");
+    botonUsar->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    botonUsar->setCursor(Qt::PointingHandCursor);
+    botonUsar->setFocusPolicy(Qt::NoFocus);
+
+    QHBoxLayout* layoutBoton = new QHBoxLayout();
+    layoutBoton->addStretch();
+    layoutBoton->addWidget(botonUsar);
+    layoutBoton->addStretch();
+    layoutPrincipal->addLayout(layoutBoton);
 
     connect(botonUsar, &QPushButton::clicked, this, &InventarioWidget::usarObjetoSeleccionado);
-
-    actualizarVista();
 }
+
 
 void InventarioWidget::actualizarVista() {
     // Limpiar vista
@@ -44,6 +86,16 @@ void InventarioWidget::actualizarVista() {
     seleccionadoActual.clear();
     mostrarObjetos();
 }
+
+void InventarioWidget::paintEvent(QPaintEvent* event) {
+    QPainter painter(this);
+    if (!fondo.isNull()) {
+        painter.drawPixmap(rect(), fondo);
+    }
+    QWidget::paintEvent(event);
+}
+
+
 
 void InventarioWidget::mostrarObjetos() {
     QStringList ordenRarezas = { "Legendario", "Epico", "Raro", "Comun" };

@@ -34,6 +34,8 @@ public:
     Objeto* obtenerObjeto(const QString& nombre);
     void usarObjeto(const QString& nombre);
     bool gastarDinero(int cantidad);
+    int getDineroActual();
+
 
     void recogerObjetos(QVector<Objeto*>& lista) const;
     void recogerPorTipo(const QString& tipo, QVector<Objeto*>& lista) const;

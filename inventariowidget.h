@@ -25,8 +25,16 @@ private:
     QWidget* crearWidgetObjeto(const Objeto& obj);
     bool eventFilter(QObject* watched, QEvent* event) override;
 
+    void crearInterfaz();
+    QPixmap fondo;
+
+
+
 private slots:
     void usarObjetoSeleccionado();
+
+protected:
+    void paintEvent(QPaintEvent* event) override;
 
 public:
     explicit InventarioWidget(Inventario* inv, QWidget* parent = nullptr);
