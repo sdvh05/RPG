@@ -1,56 +1,70 @@
 #include "SkillTreeViewer.h"
+#include "Aliados.h"
+#include "arbolhabilidad.h"
+#include <QHBoxLayout>
 #include <QVBoxLayout>
-#include <QTreeWidgetItem>
+#include <QLabel>
+#include <QPushButton>
+#include <QPainter>
+#include <QGraphicsView>
+#include <QGraphicsScene>
 
-SkillTreeViewer::SkillTreeViewer(ArbolHabilidad* arbol, int nivel, QWidget* parent)
-    : QDialog(parent), arbol(arbol), nivelActual(nivel) {
+SkillTreeViewer::SkillTreeViewer(QVector<Personaje*>& aliados, QWidget* parent)
+    : QWidget(parent)
+{
+    setWindowTitle("Árboles de Habilidad");
+    setFixedSize(1000, 400);
 
-    setWindowTitle("Árbol de Habilidades");
-    resize(400, 500);
+    QHBoxLayout* layoutPrincipal = new QHBoxLayout(this);
 
-    treeWidget = new QTreeWidget(this);
-    treeWidget->setHeaderLabels(QStringList() << "Habilidad" << "Estado");
+    for (Personaje* p : aliados) {
+        QWidget* contenedor = new QWidget(this);
+        contenedor->setFixedSize(300, 380);
+        contenedor->setStyleSheet("background-color: #111; border: 2px solid white;");
+        layoutPrincipal->addWidget(contenedor);
 
-    btnDesbloquear = new QPushButton("Desbloquear según nivel", this);
-    connect(btnDesbloquear, &QPushButton::clicked, this, &SkillTreeViewer::desbloquearHabilidades);
-
-    QVBoxLayout* layout = new QVBoxLayout(this);
-    layout->addWidget(treeWidget);
-    layout->addWidget(btnDesbloquear);
-
-    actualizarArbolVisual();
-}
-
-void SkillTreeViewer::desbloquearHabilidades() {
-    if (arbol) {
-        arbol->desbloquearPorNivel(nivelActual);
-        actualizarArbolVisual();
+        crearVistaPara(p, contenedor);
     }
 }
 
-void SkillTreeViewer::actualizarArbolVisual() {
-    treeWidget->clear();
-    if (arbol && arbol->getRaiz()) {
-        recorrerNodoVisual(arbol->getRaiz(), nullptr);
-    }
-}
+void SkillTreeViewer::crearVistaPara(Personaje* personaje, QWidget* contenedor) {
+    Aliado* aliado = dynamic_cast<Aliado*>(personaje);
+    if (!aliado || !aliado->getArbol()) return;
 
-void SkillTreeViewer::recorrerNodoVisual(NodoSkill* nodo, QTreeWidgetItem* parent) {
-    if (!nodo) return;
+    QVBoxLayout* layout = new QVBoxLayout(contenedor);
 
-    QString estado = nodo->desbloqueado ? "✔ Desbloqueado" : "❌ Bloqueado";
-    QString texto = nodo->nombre + ": " + nodo->descripcion;
+    QLabel* nombre = new QLabel(personaje->getNombre());
+    nombre->setStyleSheet("color: white; font-size: 16px;");
+    nombre->setAlignment(Qt::AlignCenter);
+    layout->addWidget(nombre);
 
-    QTreeWidgetItem* item = new QTreeWidgetItem(QStringList() << texto << estado);
-    if (parent)
-        parent->addChild(item);
-    else
-        treeWidget->addTopLevelItem(item);
+    QWidget* arbolWidget = new QWidget();
+    arbolWidget->setMinimumHeight(300);
+    layout->addWidget(arbolWidget);
 
-    if (nodo->izquierda)
-        recorrerNodoVisual(nodo->izquierda, item);
-    if (nodo->derecha)
-        recorrerNodoVisual(nodo->derecha, item);
+    QVBoxLayout* arbolLayout = new QVBoxLayout(arbolWidget);
+    NodoSkill* raiz = aliado->getArbol()->getRaiz();
 
-    item->setExpanded(true);
+    // Recorremos recursivamente el árbol
+    std::function<void(NodoSkill*, int)> recorrer = [&](NodoSkill* nodo, int nivel) {
+        if (!nodo) return;
+
+        QPushButton* btn = new QPushButton(nodo->nombre);
+        btn->setEnabled(!nodo->desbloqueado && personaje->getNivel() >= nodo->nivelRequerido);
+        btn->setStyleSheet(nodo->desbloqueado
+                               ? "background-color: green; color: white;"
+                               : "background-color: gray; color: white;");
+
+        connect(btn, &QPushButton::clicked, this, [=]() {
+            nodo->desbloqueado = true;
+            btn->setEnabled(false);
+            btn->setStyleSheet("background-color: green; color: white;");
+        });
+
+        arbolLayout->addWidget(btn);
+        recorrer(nodo->izquierda, nivel + 1);
+        recorrer(nodo->derecha, nivel + 1);
+    };
+
+    recorrer(raiz, 0);
 }

@@ -40,11 +40,11 @@ int main(int argc, char *argv[])
 
    // QApplication a(argc, argv);
 
-   /* QVector<Personaje*> aliados;
+     QVector<Personaje*> aliados;
     aliados.append(new Curandera());
     aliados.append(new Caballero());
     aliados.append(new Princesa());
-    BattleWidget* batalla = new BattleWidget("Castillo Codigo", "ogros normales",aliados);
+    /*BattleWidget* batalla = new BattleWidget("Castillo Codigo", "elite",aliados,true);
     batalla->show();*/
 
     //return a.exec();
@@ -63,8 +63,12 @@ int main(int argc, char *argv[])
     //InventarioWidget* inventarioUI = new InventarioWidget(inventarioGlobal);
     //inventarioUI->show();
 
-    TiendaWidget* tienda = new TiendaWidget(inventarioGlobal);
-    tienda->show();
+    //TiendaWidget* tienda = new TiendaWidget(inventarioGlobal);
+    //tienda->show();
+
+    //SkillTreeViewer* viewer = new SkillTreeViewer(aliados);
+    //viewer->show();
+
 
 
 

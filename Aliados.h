@@ -16,6 +16,16 @@ public:
 
     ArbolHabilidad* getArbol() const;
     void subirNivel();
+    void ganarExperiencia(int cantidad);
+
+    int getExperiencia() const { return experiencia; }
+    int getExperienciaNecesaria() const { return experienciaNecesaria; }
+    int getNivel() const { return nivel; }
+
+private:
+    int experiencia = 0;
+    int experienciaNecesaria = 20;
+
 };
 
 #endif

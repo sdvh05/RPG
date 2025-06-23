@@ -6,11 +6,13 @@ Caballero::Caballero()
     arbol = new ArbolHabilidad();
 
     NodoSkill* base = new NodoSkill("Defensa Grupal", "Aumenta la defensa de todos temporalmente", 1);
-    NodoSkill* rama1 = new NodoSkill("Estadísticas Defensivas", "+10 vida y +5 ataque", 2, 0, 5);
+    NodoSkill* rama1 = new NodoSkill("Mejores Estadísticas", "+10 vida y +3 ataque", 2, 0, 3);
     NodoSkill* rama2 = new NodoSkill("Mejora de Defensa", "Defensa extra durante el efecto", 3);
+    NodoSkill* rama3 = new NodoSkill("Entrenamiento Ofensivo", "Aumenta permanentemente el daño en +7", 4, 0, 7);
 
     base->izquierda = rama1;
     base->derecha = rama2;
+    rama1->izquierda = rama3;
 
     arbol->setRaiz(base);
 
@@ -37,9 +39,15 @@ void Caballero::ataqueEspecial(std::vector<Personaje*>& aliados, std::vector<Per
     if (base->izquierda && base->izquierda->desbloqueado) {
         vidaMax += 10;
         ataque += base->izquierda->danioExtra;
+
+        if (base->izquierda->izquierda && base->izquierda->izquierda->desbloqueado) {
+            ataque += base->izquierda->izquierda->danioExtra;
+            qDebug() << nombre << " activó Entrenamiento Ofensivo (+7 ATK).";
+        }
     }
+
     if (base->derecha && base->derecha->desbloqueado) {
-        defensaExtra += 5; // Mejora de Defensa activa
+        defensaExtra += 5;
     }
 
     if (manaActual >= 10) {
@@ -51,6 +59,9 @@ void Caballero::ataqueEspecial(std::vector<Personaje*>& aliados, std::vector<Per
         }
         usarMana(10);
         qDebug() << nombre << " usó Defensa Grupal.";
+    } else {
+        qDebug() << nombre << " no tiene suficiente maná.";
     }
 }
+
 

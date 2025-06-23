@@ -6,23 +6,18 @@
 #include <QPushButton>
 #include "ArbolHabilidad.h"
 
-class SkillTreeViewer : public QDialog {
+#include <QWidget>
+#include <QVector>
+#include "Personaje.h"
+
+class SkillTreeViewer : public QWidget {
     Q_OBJECT
 
-    ArbolHabilidad* arbol;
-    int nivelActual;
-
-    QTreeWidget* treeWidget;
-    QPushButton* btnDesbloquear;
-
 public:
-    SkillTreeViewer(ArbolHabilidad* arbol, int nivel, QWidget* parent = nullptr);
+    SkillTreeViewer(QVector<Personaje*>& aliados, QWidget* parent = nullptr);
 
-private slots:
-    void desbloquearHabilidades();
-    void actualizarArbolVisual();
-
-    void recorrerNodoVisual(NodoSkill* nodo, QTreeWidgetItem* parent = nullptr);
+private:
+    void crearVistaPara(Personaje* personaje, QWidget* contenedor);
 };
 
 #endif // SKILLTREEVIEWER_H

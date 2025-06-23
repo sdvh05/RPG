@@ -14,8 +14,10 @@ extern Inventario* inventarioGlobal;
 
 
 
-BattleWidget::BattleWidget(const QString& lugar, const QString& enemigo, QVector<Personaje*>& aliadosExistentes, QWidget* parent)
-    : QWidget(parent), aliados(aliadosExistentes)
+BattleWidget::BattleWidget(const QString& lugar, const QString& enemigo, QVector<Personaje*>& aliadosExistentes, bool recompensaEspecial,QWidget* parent)
+    : QWidget(parent),
+    aliados(aliadosExistentes),
+    tieneRecompensaEspecial(recompensaEspecial)
 {
     setFixedSize(700, 700);
 
@@ -214,19 +216,19 @@ void BattleWidget::crearInterfaz() {
 
     //WIDGET STATS ALIADO
     contenedorStatsAliado = new QWidget(this);
-    contenedorStatsAliado->setGeometry(350, 10, 250, 90);
+    contenedorStatsAliado->setGeometry(350, 10, 250, 100);
     contenedorStatsAliado->setStyleSheet("background-color: #2196F3; border: 2px solid white;");
     lblImagenAliado = new QLabel(contenedorStatsAliado);
-    lblImagenAliado->setGeometry(10, 10, 64, 64);
+    lblImagenAliado->setGeometry(10, 15, 64, 64);
     lblImagenAliado->setStyleSheet("background-color: white;");
     lblTextoStats = new QLabel(contenedorStatsAliado);
-    lblTextoStats->setGeometry(84, 7, 150, 75);
+    lblTextoStats->setGeometry(84, 6, 150, 85);
     lblTextoStats->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     lblTextoStats->setWordWrap(true);
 
     //WIDGET ENEMIGO
     contenedorStatsEnemigo = new QWidget(this);
-    contenedorStatsEnemigo->setGeometry(350, 110, 250, 90);
+    contenedorStatsEnemigo->setGeometry(350, 115, 250, 90);
     contenedorStatsEnemigo->setStyleSheet("background-color: #B71C1C; border: 2px solid white;");
     contenedorStatsEnemigo->setVisible(false);
     lblImagenEnemigo = new QLabel(contenedorStatsEnemigo);
@@ -474,13 +476,14 @@ void BattleWidget::actualizarColorBotones(const QString& nombrePersonaje) {
     // Mostrar estadísticas del aliado actual
     for (Personaje* p : aliados) {
         if (p->getNombre() == nombrePersonaje) {
-            QString stats = QString("Nombre: %1\nAtaque: %2\nVida: %3/%4\nManá: %5/%6")
+            QString stats = QString("Nombre: %1\nAtaque: %2\nVida: %3/%4\nManá: %5/%6 \nNivel: %7")
                                 .arg(p->getNombre())
                                 .arg(p->getAtaque())
                                 .arg(p->getVidaActual())
                                 .arg(p->getVidaMax())
                                 .arg(p->getManaActual())
-                                .arg(p->getManaMax());
+                                .arg(p->getManaMax())
+                                .arg(p->getNivel());
             lblTextoStats->setText(stats);
 
             QPixmap sprite = p->getFrameActual();
@@ -936,40 +939,126 @@ void BattleWidget::animacionEsquivar(Personaje* personaje, std::function<void()>
 
 
 void BattleWidget::PostBatalla(bool victoria) {
-    QWidget* panel = new QWidget(this);
-    panel->setGeometry((width() - 300) / 2, (height() - 200) / 2, 300, 200);
-    panel->setStyleSheet("background-color: white; border: 3px solid black; border-radius: 15px;");
-
-    QLabel* mensaje = new QLabel(panel);
-    mensaje->setGeometry(20, 30, 260, 60);
-    mensaje->setAlignment(Qt::AlignCenter);
-    mensaje->setStyleSheet("font-size: 22px; font-weight: bold;");
-
-    if (victoria) {
-        panel->setStyleSheet("background-color: green; border: 3px solid black; border-radius: 15px;");
-        mensaje->setText("¡Victoria!");
-        mensaje->setStyleSheet("color: green; font-size: 22px; font-weight: bold;");
-
-    } else {
-        mensaje->setText("Derrota...");
-        mensaje->setStyleSheet("color: red; font-size: 22px; font-weight: bold;");
-        panel->setStyleSheet("background-color: red; border: 3px solid black; border-radius: 15px;");
-    }
-
-    QPushButton* btnContinuar = new QPushButton("Continuar", panel);
-    btnContinuar->setGeometry(100, 130, 100, 30);
-    btnContinuar->setText("Continuar");
-    btnContinuar->setStyleSheet("color: black; font-size: 15px; font-weight: bold;");
-    connect(btnContinuar, &QPushButton::clicked, this, [=]() {
-        panel->deleteLater();
-        this->close(); // Cerrar batalla
-    });
-
-    panel->show();
     setBotonesHabilitados(false);
     lblSeleccion->hide();
     faseActual = ESPERA;
+
+    if (victoria) {
+        int experienciaGanada = QRandomGenerator::global()->bounded(5, 10);
+        for (Personaje* p : aliados) {
+            if (p->esAliadoPersonaje()) {
+                Aliado* aliado = dynamic_cast<Aliado*>(p);
+                if (aliado)
+                    aliado->ganarExperiencia(experienciaGanada);
+            }
+        }
+    }
+
+    QWidget* panelVictoria = new QWidget(this);
+    panelVictoria->setGeometry((width() - 300) / 2, (height() - 200) / 2, 300, 200);
+    panelVictoria->setStyleSheet("background-color: green; border: 3px solid black; border-radius: 15px;");
+
+    QLabel* lblVictoria = new QLabel("¡Victoria!", panelVictoria);
+    lblVictoria->setGeometry(20, 50, 260, 60);
+    lblVictoria->setAlignment(Qt::AlignCenter);
+    lblVictoria->setStyleSheet("color: white; font-size: 22px; font-weight: bold;");
+
+    QPushButton* btnContinuar = new QPushButton("Continuar", panelVictoria);
+    btnContinuar->setGeometry(100, 130, 100, 30);
+    btnContinuar->setStyleSheet("color: black; font-size: 15px; font-weight: bold;");
+
+    panelVictoria->show();
+
+    connect(btnContinuar, &QPushButton::clicked, this, [=]() {
+        panelVictoria->deleteLater();
+
+        // Mostrar panel de monedas
+        QWidget* panelMonedas = new QWidget(this);
+        panelMonedas->setGeometry((width() - 300) / 2, (height() - 200) / 2, 300, 200);
+        panelMonedas->setStyleSheet("background-color: white; border: 3px solid black; border-radius: 15px;");
+
+        int monedas = QRandomGenerator::global()->bounded(80, 101);
+        inventarioGlobal->agregarDinero(monedas);
+
+        QLabel* lblMonedas = new QLabel("¡Ganaste " + QString::number(monedas) + " monedas!", panelMonedas);
+        lblMonedas->setGeometry(20, 50, 260, 30);
+        lblMonedas->setAlignment(Qt::AlignCenter);
+        lblMonedas->setStyleSheet("color: #FFD700; font-size: 18px; font-weight: bold;");
+
+        QLabel* iconoMoneda = new QLabel(panelMonedas);
+        iconoMoneda->setGeometry(130, 90, 40, 40);
+        QPixmap moneda("Personajes/Items/Golden Coin.png");
+        iconoMoneda->setPixmap(moneda.scaled(40, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+
+        QPushButton* btnSiguiente = new QPushButton("Continuar", panelMonedas);
+        btnSiguiente->setGeometry(100, 140, 100, 30);
+        btnSiguiente->setStyleSheet("color: black; font-size: 15px; font-weight: bold;");
+
+        panelMonedas->show();
+
+        connect(btnSiguiente, &QPushButton::clicked, this, [=]() {
+            panelMonedas->deleteLater();
+
+            // ¿Hay núcleo?
+            if (tieneRecompensaEspecial) {
+                QWidget* panelNucleo = new QWidget(this);
+                panelNucleo->setGeometry((width() - 300) / 2, (height() - 200) / 2, 300, 200);
+                panelNucleo->setStyleSheet("background-color: #1B5E20; border: 3px solid black; border-radius: 15px;");
+
+                QLabel* lblNucleo = new QLabel("¡Obtuviste un Núcleo!", panelNucleo);
+                lblNucleo->setGeometry(20, 50, 260, 30);
+                lblNucleo->setAlignment(Qt::AlignCenter);
+                lblNucleo->setStyleSheet("color: green; font-size: 18px; font-weight: bold;");
+                inventarioGlobal->agregarNucleo();
+
+                QLabel* iconoNucleo = new QLabel(panelNucleo);
+                iconoNucleo->setGeometry(130, 90, 40, 40);
+                QPixmap nucleo("Personajes/Items/Emerald.png");
+                iconoNucleo->setPixmap(nucleo.scaled(40, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+
+                QPushButton* btnFinal = new QPushButton("Salir", panelNucleo);
+                btnFinal->setGeometry(100, 140, 100, 30);
+                btnFinal->setStyleSheet("color: black; font-size: 15px; font-weight: bold;");
+
+                connect(btnFinal, &QPushButton::clicked, this, [=]() {
+                    panelNucleo->deleteLater();
+                    this->close();
+                });
+
+                panelNucleo->show();
+            } else {
+                this->close();
+            }
+        });
+    });
+
+    // DERROTA
+    if (!victoria) {
+        panelVictoria->deleteLater();
+
+        QWidget* panelDerrota = new QWidget(this);
+        panelDerrota->setGeometry((width() - 300) / 2, (height() - 200) / 2, 300, 200);
+        panelDerrota->setStyleSheet("background-color: red; border: 3px solid black; border-radius: 15px;");
+
+        QLabel* lblDerrota = new QLabel("Derrota...", panelDerrota);
+        lblDerrota->setGeometry(20, 50, 260, 60);
+        lblDerrota->setAlignment(Qt::AlignCenter);
+        lblDerrota->setStyleSheet("color: white; font-size: 22px; font-weight: bold;");
+
+        QPushButton* btnSalir = new QPushButton("Salir", panelDerrota);
+        btnSalir->setGeometry(100, 130, 100, 30);
+        btnSalir->setStyleSheet("color: black; font-size: 15px; font-weight: bold;");
+
+        connect(btnSalir, &QPushButton::clicked, this, [=]() {
+            panelDerrota->deleteLater();
+            this->close();
+        });
+
+        panelDerrota->show();
+    }
 }
+
+
 
 
 

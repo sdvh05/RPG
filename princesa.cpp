@@ -1,15 +1,16 @@
 #include "princesa.h"
 #include <cstdlib>
+#include <QRandomGenerator>
 #include <ctime>
 
 Princesa::Princesa()
-    : Aliado("Princesa", 85, 35, 25) {
+    : Aliado("Princesa", 90, 35, 25) {
 
     arbol = new ArbolHabilidad();
 
-    NodoSkill* base = new NodoSkill("Doble Flecha", "Ataca dos veces", 1);
-    NodoSkill* rama1 = new NodoSkill("Daño Aumentado", "Daño +10", 2, 0, 10);
-    NodoSkill* rama2 = new NodoSkill("Crítico", "20% probabilidad de crítico", 2, 0, 0, 0, true);
+    NodoSkill* base = new NodoSkill("Critico", "Probabilidad de Critico 10%", 1);
+    NodoSkill* rama1 = new NodoSkill("Daño Aumentado", "Daño +5", 2, 0, 5);
+    NodoSkill* rama2 = new NodoSkill("Crítico Aumentado", "25% probabilidad de crítico", 2, 0, 0, 0, true);
     NodoSkill* rama3 = new NodoSkill("Doble Mejorado", "Cada golpe +5 extra", 3, 0, 5);
 
     base->izquierda = rama1;
@@ -37,13 +38,40 @@ Princesa::Princesa()
 
 void Princesa::ataqueEspecial(std::vector<Personaje*>&, std::vector<Personaje*>& enemigos) {
     if (manaActual >= 15) {
-        //setEstado("especial");
+        setEstado("especial");
 
-        int danio = ataque * 0.5;
+        NodoSkill* nodo = arbol->getRaiz();
+        int danioExtra = 0;
+        bool critico = false;
+
+        if (nodo->desbloqueado) {
+            if (nodo->izquierda && nodo->izquierda->desbloqueado)
+                danioExtra += nodo->izquierda->danioExtra;
+
+            if (nodo->derecha && nodo->derecha->desbloqueado)
+                critico = nodo->derecha->probCritico;
+
+            if (nodo->izquierda && nodo->izquierda->izquierda && nodo->izquierda->izquierda->desbloqueado)
+                danioExtra += nodo->izquierda->izquierda->danioExtra; // Extra del nodo "Doble Mejorado"
+        }
+
+        int danioBase = ataque * 0.5;
+        int final = danioBase + danioExtra;
+
         for (auto enemigo : enemigos) {
             if (enemigo->getVidaActual() > 0) {
-                enemigo->recibirDanio(danio);
-                qDebug() << nombre << " golpea a " << enemigo->getNombre() << " con ataque grupal de " << danio;
+                int total = final;
+
+                if (critico) {
+                    int chance = QRandomGenerator::global()->bounded(100);
+                    if (chance < 25) {
+                        total *= 2;
+                        qDebug() << "¡Golpe crítico!";
+                    }
+                }
+
+                enemigo->recibirDanio(total);
+                qDebug() << nombre << " golpea a " << enemigo->getNombre() << " por " << total;
             }
         }
 
@@ -52,4 +80,5 @@ void Princesa::ataqueEspecial(std::vector<Personaje*>&, std::vector<Personaje*>&
         qDebug() << nombre << " no tiene suficiente maná para su especial.";
     }
 }
+
 

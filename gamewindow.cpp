@@ -26,7 +26,6 @@ GameWindow::GameWindow(QWidget *parent)
 
 
     scene = new QGraphicsScene(this);
-    //view = new QGraphicsView(scene, this);
     view = new CustomGraphicsView(scene, this);
 
     retratoMago.load("OpenSprite/retrato_mago.png");
@@ -422,7 +421,7 @@ GameWindow::GameWindow(QWidget *parent)
 
     QPixmap frame2 = slimeWalkSheet.copy(0, 0, 100, 100);
     slime2 = scene->addPixmap(frame2);
-    slime2->setPos(80, 100);  // Cambia posición para que no colisione con el primero
+    slime2->setPos(80, 100);
     slime2->setZValue(1);
 
     slime2FrameIndex = 0;
@@ -472,8 +471,8 @@ GameWindow::~GameWindow()
 }
 void GameWindow::wheelEvent(QWheelEvent *event)
 {
-    // Evita que el usuario use el scroll del mouse o touchpad para mover el mapa
-    event->ignore();  // Alternativa: no llamar a QDialog::wheelEvent(event);
+
+    event->ignore();
 }
 
 
@@ -570,16 +569,16 @@ void GameWindow::checkWizardInteraction()
         dialogoTexto = scene->addText(textoParcialWizard);
         dialogoTexto->setDefaultTextColor(Qt::black);
         dialogoTexto->setFont(QFont("Arial", 7, QFont::Normal));
-        dialogoTexto->setTextWidth(anchoVisible - 50);  // Ajustado
+        dialogoTexto->setTextWidth(anchoVisible - 50);
         dialogoTexto->setZValue(11);
-        dialogoTexto->setPos(posX + 30, posY + 100);  // Ajustado
+        dialogoTexto->setPos(posX + 30, posY + 100);
 
         // Texto de ayuda
         dialogoAyuda = scene->addText("[Espacio] → Siguiente");
         dialogoAyuda->setDefaultTextColor(Qt::black);
         dialogoAyuda->setFont(QFont("Arial", 6, QFont::Normal));
         dialogoAyuda->setZValue(11);
-        dialogoAyuda->setPos(posX + anchoVisible - 115, posY + altoVisible - 150);  // Ajustado
+        dialogoAyuda->setPos(posX + anchoVisible - 115, posY + altoVisible - 150);
 
         // Iniciar timer
         timerTextoWizard = new QTimer(this);
@@ -735,7 +734,7 @@ void GameWindow::updateSlime()
     if (!colisionaConBloqueadores(slime, slimeDx, 0)) {
         slime->moveBy(slimeDx, 0);
     } else {
-        // Si colisiona → cambiar dirección X
+        // Si colisiona  cambiar dirección X
         slimeDx = -slimeDx;
     }
 
@@ -743,7 +742,7 @@ void GameWindow::updateSlime()
     if (!colisionaConBloqueadores(slime, 0, slimeDy)) {
         slime->moveBy(0, slimeDy);
     } else {
-        // Si colisiona → cambiar dirección Y
+        // Si colisiona  cambiar dirección Y
         slimeDy = -slimeDy;
     }
 
@@ -893,9 +892,13 @@ void GameWindow::cambiarAMundoNuevo()
     }
     // mapa 4
     zonaTransicionAMapa4 = scene->addRect(1, 475, 9, 165);
-    zonaTransicionAMapa4->setBrush(Qt::red);  // o Qt::red para pruebas
+    zonaTransicionAMapa4->setBrush(Qt::red);
     zonaTransicionAMapa4->setPen(Qt::NoPen);
     bloqueadores.append(zonaTransicionAMapa4);
+
+    zonaTransicionAMapa7 = scene->addRect(653, 932, 32, 4, QPen(Qt::red));
+    zonaTransicionAMapa7->setBrush(Qt::transparent);
+
 
     // Crear Wizard
     if (!wizardIdleSheet.isNull()) {
@@ -909,6 +912,8 @@ void GameWindow::cambiarAMundoNuevo()
         bloqueadores.append(wizard);
 
     }
+
+
 
     // ------------------------------------------------------------ Armored Axeman (NPC) --------------------------------------------------------------------------------------------------
 
@@ -1003,6 +1008,20 @@ void GameWindow::cambiarAMundoNuevo()
         connect(orc2Timer, &QTimer::timeout, this, &GameWindow::updateOrc2);
         orc2Timer->start(270);
     }
+
+    // Cargar sprite del NPC
+    QPixmap spriteNPC("OpenSprite/Soldier-Idle.png");
+    QPixmap frameNPC = spriteNPC.copy(0, 0, 100, 100); // ajusta según tamaño del sprite
+    npcTienda = scene->addPixmap(frameNPC);
+    npcTienda->setPos(500, 600);
+    npcTienda->setScale(2.0); // opcional
+
+    // Texto flotante del NPC
+    mensajeTienda = scene->addText("");
+    mensajeTienda->setDefaultTextColor(Qt::white);
+    mensajeTienda->setFont(QFont("Arial", 10));
+    mensajeTienda->setPos(520, 650); // justo encima del NPC
+    mensajeTienda->setZValue(10);
 
 
     // colisiones exterior
@@ -1359,6 +1378,11 @@ void GameWindow::cambiarAMundoNuevo()
     bloqueNuevo69->setPen(Qt::NoPen);
     bloqueadores.append(bloqueNuevo69);
 
+    QGraphicsRectItem *bloqueNuevo70 = scene->addRect(654, 914, 33, 4);
+    bloqueNuevo70->setBrush(Qt::transparent);
+    bloqueNuevo70->setPen(Qt::NoPen);
+    bloqueadores.append(bloqueNuevo70);
+
 
     currentDirection = None;
     moveTimer->stop();
@@ -1381,11 +1405,11 @@ void GameWindow::cambiarAMundoNuevo()
             << "Caballero: Pero... no podré hacerlo solo."
             << "Brujo: Ya te lo advertí antes: mis aliadas, la Curandera y la Princesa C#, estarán contigo."
             << "Caballero: Ah... cierto, lo había olvidado. Entonces dime, ¿por dónde empiezo?"
-            << "Brujo: Tu primera misión es ayudar a Steve Latin. Los ogros del jefe secuestraron a su hermano."
+            << "Brujo: Tu primera misión es ayudar a el Axeman. Los ogros del jefe secuestraron a su hermano."
                " Él está cerca de aquí. Debes encontrarlo y ofrecerle tu ayuda."
             << "Caballero: ¿Qué pasó con su hermano?"
             << "Brujo: Creemos que logró robar un fragmento del Éterium, pero los ogros lo capturaron."
-            << "Caballero: Entiendo. Entonces ayudaré a Steve Latin... y juntos, salvaremos este mundo.";
+            << "Caballero: Entiendo. Entonces ayudaré a el Axeman... y juntos, salvaremos este mundo.";
 
         fraseActualSegundoMapa = 0;
         dialogoActivo = true;
@@ -1441,7 +1465,7 @@ void GameWindow::cambiarAMundoNuevo()
             connect(timerTextoSegundoMapa, &QTimer::timeout, this, &GameWindow::updateLetraSegundoMapa);
         }
         timerTextoSegundoMapa->start(40);
-        //  player->setPos(1130, 564);  // ← Nueva posición exacta
+
     }
     regresoDesdeMapaTres = false;
 
@@ -1450,9 +1474,20 @@ void GameWindow::cambiarAMundoNuevo()
 }
 
 
+
+
 void GameWindow::cambiarAMundoTres() {
 
-
+    if (npcTienda) {
+        scene->removeItem(npcTienda);
+        delete npcTienda;
+        npcTienda = nullptr;
+    }
+    if (mensajeTienda) {
+        scene->removeItem(mensajeTienda);
+        delete mensajeTienda;
+        mensajeTienda = nullptr;
+    }
     // Eliminar elementos del mapa anterior (segundo mapa)
 
     // Eliminar orc1
@@ -1539,14 +1574,14 @@ void GameWindow::cambiarAMundoTres() {
         QPixmap frame = idleSheet.copy(0, 0, 350, 350);
         player = scene->addPixmap(frame);
         player->setZValue(1);
-        player->setPos(25, 440);  // Puedes ajustar
+        player->setPos(25, 440);
         player->setScale(2.5);
         view->centerOn(player);
     }
 
     // Zona de regreso al mapa 2
     QGraphicsRectItem *zonaRegreso = scene->addRect(8, 450, 30, 230);
-    zonaRegreso->setBrush(Qt::red); // visible durante pruebas
+    zonaRegreso->setBrush(Qt::red);
     zonaRegreso->setPen(Qt::NoPen);
     bloqueadores.append(zonaRegreso);
 
@@ -1819,10 +1854,7 @@ void GameWindow::cambiarAMundoTres() {
     Mapa3colison53->setPen(Qt::NoPen);
     bloqueadores.append(Mapa3colison53);
 
-
-
-
-    playerSpeed = 20;  // o la velocidad que quieras
+    playerSpeed = 15;
 
     qDebug("Mapa 3 cargado correctamente.");
 
@@ -2013,7 +2045,7 @@ void GameWindow::iniciarDialogoAxeman() {
     fraseActualAxeman = 0;
     textoParcialSegundoMapa = "";
     letraActualSegundoMapa = 0;
-    dialogoAxemanActivo = true;  // ← Marca que es diálogo del axeman
+    dialogoAxemanActivo = true;
 
     // Quita globo
     if (labelAxeman) labelAxeman->hide();
@@ -2096,7 +2128,7 @@ void GameWindow::updateLetraSegundoMapa()
             if (frase.startsWith("Caballero:")) {
                 mostrarRetrato("Caballero");
             } else if (frase.startsWith("Brujo:")) {
-                mostrarRetrato("Mago"); // El brujo usa retrato del mago
+                mostrarRetrato("Mago");
             }
         }
 
@@ -2105,7 +2137,7 @@ void GameWindow::updateLetraSegundoMapa()
             dialogoTexto->setPlainText(textoParcialSegundoMapa);
             letraActualSegundoMapa++;
         } else {
-            timerTextoSegundoMapa->stop();  // Espera a presionar espacio
+            timerTextoSegundoMapa->stop();
         }
     }
 }
@@ -2169,7 +2201,7 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
                     }
                 }
 
-                return;  // ← MUY IMPORTANTE
+                return;
             }
 
             // ---- Diálogo del segundo mapa ----
@@ -2213,7 +2245,7 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
                         }
 
                         dialogoActivo = false;
-                        dialogoWizardYaMostrado = true;  // ← AÑADE ESTA LÍNEA AQUÍ
+                        dialogoWizardYaMostrado = true;
 
                         qDebug("¡Diálogo del segundo mapa terminado!");
                     }
@@ -2330,6 +2362,32 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
             inventarioUI->activateWindow();
         }
     }
+    if (event->key() == Qt::Key_K) {
+        if (!skillTreeUI) {
+            skillTreeUI = new SkillTreeViewer(aliados);
+            skillTreeUI->setAttribute(Qt::WA_DeleteOnClose);
+            connect(skillTreeUI, &QWidget::destroyed, this, [=]() {
+                skillTreeUI = nullptr;
+            });
+            skillTreeUI->show();
+        } else {
+            skillTreeUI->raise();
+            skillTreeUI->activateWindow();
+        }
+    }
+    if (event->key() == Qt::Key_T) {
+        if (!tiendaUI) {
+            tiendaUI =new TiendaWidget(inventarioGlobal);  // usa tus aliados existentes
+            tiendaUI->setAttribute(Qt::WA_DeleteOnClose);
+            connect(tiendaUI, &QWidget::destroyed, this, [=]() {
+                tiendaUI = nullptr;
+            });
+            tiendaUI->show();
+        } else {
+            tiendaUI->raise();
+            tiendaUI->activateWindow();
+        }
+    }
 
     if (idleTimer->isActive()) {
         idleTimer->stop();
@@ -2337,6 +2395,30 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
     }
 
     if (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter) {
+
+        // ----- Mapa 7 → Mapa 3 -----
+        if (mundoSieteActivo) {
+            if (zonaTransicionAMapa3DesdeMapa7 && player) {
+                QRectF zona = zonaTransicionAMapa3DesdeMapa7->sceneBoundingRect();
+                QRectF caballero = player->sceneBoundingRect();
+
+                if (zona.intersects(caballero)) {
+                    qDebug("Transición del mapa 7 al mapa 3...");
+                    mundoSieteActivo = false;
+                    mundoTresActivo = true;
+                    cambiarAMundoTres();
+                    player->setPos(200, 90);  // Posición en mapa 3
+                    view->centerOn(player);
+                    return;
+                }
+            }
+
+            qDebug("ENTER presionado en mapa 7 sin zona válida de salida.");
+            return;
+        }
+
+
+
         // ----- Mapa 5 -----
         if (mundoCincoActivo) {
             if (zonaTransicionAMapa3DesdeMapa5 && player) {
@@ -2348,7 +2430,7 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
                     mundoCincoActivo = false;
                     mundoTresActivo = true;
                     cambiarAMundoTres();
-                    player->setPos(1500, 265);  // Posición en mapa 3
+                    player->setPos(1380, 170);  // Posición en mapa 3
                     view->centerOn(player);
                     return;
                 }
@@ -2371,7 +2453,7 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
                     mundoSeisActivo = false;
                     mundoCuatroActivo = true;
                     cambiarAMundoCuatro();
-                    player->setPos(1040, 371);
+                    player->setPos(870, 220);
                     view->centerOn(player);
                     return;
                 } else {
@@ -2388,7 +2470,7 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
                             mundoSeisActivo = false;
                             mundoCincoActivo = true;
                             cambiarAMundoCinco();
-                            player->setPos(240, 1600); // ← Posición en el mapa 5
+                            player->setPos(200, 1520); // ← Posición en el mapa 5
                             view->centerOn(player);
                             return;
                         }
@@ -2414,7 +2496,7 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
                     mundoTresActivo = false;
                     regresoDesdeMapaTres = true;
                     cambiarAMundoNuevo();
-                    player->setPos(1000, 570);
+                    player->setPos(1050, 530);
                     view->centerOn(player);
                     return;
                 }
@@ -2434,21 +2516,26 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
                 regresoDesdeMapaCuatro = true;
                 cambiarAMundoNuevo();
                 mundoCambiado = true;
-                player->setPos(100, 520);
+                player->setPos(40, 470);
                 view->centerOn(player);
                 return;
             }
         }
-/*
-        // ----- Mapa 2 → Mapa 3 -----
-        if (!mundoTresActivo && !mundoCuatroActivo && !mundoCincoActivo && puedeCambiarAMapa3) {
-            qDebug("Entrando al mapa 3 con Enter...");
-            mundoTresActivo = true;
-            cambiarAMundoTres();
-            puedeCambiarAMapa3 = false;
-            return;
+
+
+        if (!mundoTresActivo && !mundoCuatroActivo && !mundoCincoActivo && !mundoSeisActivo && !mundoSieteActivo) {
+            if (zonaTransicionAMapa7 && player) {
+                QRectF zona = zonaTransicionAMapa7->sceneBoundingRect();
+                QRectF caballero = player->sceneBoundingRect();
+
+                if (zona.intersects(caballero)) {
+                    qDebug("Transición al Mapa 7 desde el Mapa 2...");
+                    mundoSieteActivo = true;
+                    cambiarAMundoSiete();
+                    return;
+                }
+            }
         }
-*/
 
         // ----- Mapa 2 → Mapa 3 -----
         if (!mundoTresActivo && !mundoCuatroActivo && !mundoCincoActivo && !mundoSeisActivo && puedeCambiarAMapa3) {
@@ -2458,6 +2545,7 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
             puedeCambiarAMapa3 = false;
             return;
         }
+
 
         // ----- Mapa 3 → Mapa 5 -----
         if (mundoTresActivo && puedeCambiarAMapa5) {
@@ -2600,6 +2688,7 @@ void GameWindow::updateMovement()
 
     player->setPixmap(frame);
 
+
     // Mostrar/ocultar label del Mago
     if (labelMago && wizard) {
         qreal distanceMago = QLineF(player->scenePos(), wizard->scenePos()).length();
@@ -2631,17 +2720,36 @@ void GameWindow::updateMovement()
             labelSlime2->setVisible(false);
         }
     }
+
+    if (mundoCambiado && npcTienda && mensajeTienda && player) {
+        QPointF posJugador = player->pos();
+        QPointF posNPC = npcTienda->pos();
+
+        qreal distancia = QLineF(posJugador, posNPC).length();
+
+        if (distancia < 80 ) {
+            mensajeTienda->setPlainText("¡Preciona 'T' para ver Mi Tienda!");
+
+        } else if (distancia >= 80 ) {
+            mensajeTienda->setPlainText("");  // Oculta el mensaje si se aleja
+
+        }
+    }
+
+
     // Verificar si el jugador está en zona de transición al mapa 3 (pero sin cambiar aún)
     if (mundoCambiado && !mundoTresActivo) {
         QRectF zonaTransicion(1188, 486, 5, 258);
         QRectF rectJugador = player->sceneBoundingRect();
 
         if (zonaTransicion.intersects(rectJugador)) {
-            puedeCambiarAMapa3 = true; // habilita cambio al presionar Enter
+            puedeCambiarAMapa3 = true;
         } else {
-            puedeCambiarAMapa3 = false; // fuera de zona
+            puedeCambiarAMapa3 = false;
         }
     }
+
+
 
     // Verificar si el jugador está en zona de transición al mapa 5 desde el mapa 3
     if (player && mundoTresActivo && !mundoCincoActivo) {
@@ -2676,22 +2784,8 @@ void GameWindow::updateMovement()
         puedeRegresarDesdeMapa6 = false;
     }
 
-/*
-    // Verificar si el jugador está en zona de transición al mapa 5 desde el mapa 6
-    if (mundoSeisActivo && !mundoCincoActivo) {
-        if (zonaTransicionAMapa5DesdeMapa6 && player) {
-            QRectF zona = zonaTransicionAMapa5DesdeMapa6->sceneBoundingRect();
-            QRectF caballero = player->sceneBoundingRect();
-            puedeCambiarAMapa5DesdeMapa6 = zona.intersects(caballero);
-        } else {
-            puedeCambiarAMapa5DesdeMapa6 = false;
-        }
-    } else {
-        puedeCambiarAMapa5DesdeMapa6 = false;
-    }
 
-*/
-   // Verificar si el jugador está en zona de transición del mapa 6 al mapa 5
+    // Verificar si el jugador está en zona de transición del mapa 6 al mapa 5
     if (mundoSeisActivo && !mundoCincoActivo) {
         if (zonaTransicionAMapa5DesdeMapa6 && player) {
             QRectF zona = zonaTransicionAMapa5DesdeMapa6->sceneBoundingRect();
@@ -2703,19 +2797,17 @@ void GameWindow::updateMovement()
         }
     }
 
+    if (mundoSieteActivo && !mundoTresActivo) {
+        if (zonaTransicionAMapa3DesdeMapa7 && player) {
+            QRectF zona = zonaTransicionAMapa3DesdeMapa7->sceneBoundingRect();
+            QRectF caballero = player->sceneBoundingRect();
 
-
-
+            puedeCambiarAMapa3DesdeMapa7 = zona.intersects(caballero);
+        } else {
+            puedeCambiarAMapa3DesdeMapa7 = false;
+        }
+    }
 }
-
-
-
-
-
-
-
-
-
 
 //------------------------------------------------colisiones villa c++ --------------------------------------------
 bool GameWindow::colisionaConBloqueadores(QGraphicsItem *item, qreal dx, qreal dy)
@@ -2771,6 +2863,17 @@ void GameWindow::mostrarRetrato(const QString &quien)
 
 void GameWindow::cambiarAMundoCuatro()
 {
+
+    if (npcTienda) {
+        scene->removeItem(npcTienda);
+        delete npcTienda;
+        npcTienda = nullptr;
+    }
+    if (mensajeTienda) {
+        scene->removeItem(mensajeTienda);
+        delete mensajeTienda;
+        mensajeTienda = nullptr;
+    }
     // Verificar antes de borrar Wizard
     if (wizard) {
         scene->removeItem(wizard);
@@ -2847,7 +2950,7 @@ void GameWindow::cambiarAMundoCuatro()
     view->setFixedSize(700, 700);
     this->setFixedSize(700, 700);
     view->resetTransform();
-    view->scale(0.6, 0.6);  // ajusta el zoom si lo deseas
+    view->scale(0.6, 0.6);
 
     // Crear al caballero en la nueva posición
     if (!idleSheet.isNull()) {
@@ -2855,11 +2958,11 @@ void GameWindow::cambiarAMundoCuatro()
         player = scene->addPixmap(frame);
         player->setZValue(1);
         player->setPos(1770, 440);  // Posición al llegar al mapa 4
-        player->setScale(4.0);     // Ajusta escala si deseas
+        player->setScale(4.0);
         view->centerOn(player);
     }
 
-    playerSpeed = 20;  // puedes ajustar velocidad para este mapa
+    playerSpeed = 20;
 
     QGraphicsRectItem* Mapa4colison1 = scene->addRect(1762, 18, 332, 428);
     Mapa4colison1->setBrush(Qt::transparent);
@@ -2939,13 +3042,13 @@ void GameWindow::cambiarAMundoCinco() {
     scene->clear();
     bloqueadores.clear();
 
-    QPixmap fondo("OpenSprite/Mapa_5.png");  // Asegúrate de que esté en esa ruta
+    QPixmap fondo("OpenSprite/Mapa_5.png");
     if (fondo.isNull()) {
         qDebug(" No se pudo cargar Mapa_5.png.");
         return;
     }
     view->resetTransform();
-    view->scale(0.5, 0.5);  // ajusta el zoom si lo deseas
+    view->scale(0.5, 0.5);
 
     scene->setSceneRect(0, 0, fondo.width(), fondo.height());
     QGraphicsPixmapItem *fondoItem = scene->addPixmap(fondo);
@@ -2964,10 +3067,11 @@ void GameWindow::cambiarAMundoCinco() {
         view->centerOn(player);
     }
 
-    // Opcional: Reiniciar movimiento
+    playerSpeed = 15;
+
+
     if (moveTimer) moveTimer->start(50);
     if (idleTimer) idleTimer->start(250);
-    // Colisión 1 - pared izquierda
 
     QGraphicsRectItem* Mapa5colision1 = scene->addRect(592, 2995, 191, 5);
     Mapa5colision1->setBrush(Qt::transparent);  // invisible
@@ -3081,7 +3185,7 @@ void GameWindow::cambiarAMundoSeis() {
     scene->addPixmap(fondo);
 
     view->resetTransform();
-    view->scale(1.0, 1.0);  // ajusta el zoom si lo deseas
+    view->scale(1.0, 1.0);
 
     zonaTransicionDesdeMapa6 = scene->addRect(509, 1026, 180, 8, QPen(Qt::red));
     zonaTransicionDesdeMapa6->setBrush(Qt::transparent);
@@ -3089,23 +3193,22 @@ void GameWindow::cambiarAMundoSeis() {
 
     zonaTransicionAMapa5DesdeMapa6 = scene->addRect(1108, 215, 42, 49, QPen(Qt::red));
     zonaTransicionAMapa5DesdeMapa6->setBrush(Qt::transparent);
- //bloqueadores.append( zonaTransicionAMapa5DesdeMapa6);
+
 
     // Restaurar caballero
     if (!idleSheet.isNull()) {
         QPixmap frame = idleSheet.copy(0, 0, 100, 100);
         player = scene->addPixmap(frame);
         player->setZValue(1);
-        player->setPos(590, 850);  // Posición inicial
+        player->setPos(500, 880);  // Posición inicial
         player->setScale(2.0);
         view->centerOn(player);
     }
 
-    // Opcional: Reiniciar movimiento
+    playerSpeed = 8;
+
     if (moveTimer) moveTimer->start(50);
     if (idleTimer) idleTimer->start(250);
-    // Puedes agregar colisiones, enemigos, NPCs aquí si quieres
-
 
     QGraphicsRectItem* Mapa6colision1 = scene->addRect(2, 1, 1193, 93);
     Mapa6colision1->setBrush(Qt::transparent); // invisible
@@ -3161,7 +3264,7 @@ void GameWindow::cambiarAMundoSeis() {
     Mapa6colision11->setBrush(Qt::transparent);
     Mapa6colision11->setPen(Qt::NoPen);
     bloqueadores.append(Mapa6colision11);
-/*
+    /*
     QGraphicsRectItem* Mapa6colision12 = scene->addRect(2, 1, 1193, 93);
     Mapa6colision12->setBrush(Qt::transparent);
     Mapa6colision12->setPen(Qt::NoPen);
@@ -3191,3 +3294,148 @@ void GameWindow::cambiarAMundoSeis() {
 
 }
 
+void GameWindow::cambiarAMundoSiete() {
+
+    if (npcTienda) {
+        scene->removeItem(npcTienda);
+        delete npcTienda;
+        npcTienda = nullptr;
+    }
+    if (mensajeTienda) {
+        scene->removeItem(mensajeTienda);
+        delete mensajeTienda;
+        mensajeTienda = nullptr;
+    }
+    // Eliminar orc1
+    if (orcTimer && orcTimer->isActive()) {
+        orcTimer->stop();
+        delete orcTimer;
+        orcTimer = nullptr;
+    }
+    if (orc) {
+        scene->removeItem(orc);
+        delete orc;
+        orc = nullptr;
+    }
+
+    // Eliminar orc2
+    if (orc2Timer && orc2Timer->isActive()) {
+        orc2Timer->stop();
+        delete orc2Timer;
+        orc2Timer = nullptr;
+    }
+    if (orc2) {
+        scene->removeItem(orc2);
+        delete orc2;
+        orc2 = nullptr;
+    }
+
+    // Eliminar wizard
+    if (wizard) {
+        scene->removeItem(wizard);
+        delete wizard;
+        wizard = nullptr;
+    }
+
+    // Eliminar axeman
+    if (axeman) {
+        scene->removeItem(axeman);
+        delete axeman;
+        axeman = nullptr;
+    }
+    if (labelAxeman) {
+        scene->removeItem(labelAxeman);
+        delete labelAxeman;
+        labelAxeman = nullptr;
+    }
+    if (globoOvalo) {
+        scene->removeItem(globoOvalo);
+        delete globoOvalo;
+        globoOvalo = nullptr;
+    }
+    if (axemanTextoTimer && axemanTextoTimer->isActive()) {
+        axemanTextoTimer->stop();
+        delete axemanTextoTimer;
+        axemanTextoTimer = nullptr;
+    }
+    if (moveTimer && moveTimer->isActive()) moveTimer->stop();
+    if (idleTimer && idleTimer->isActive()) idleTimer->stop();
+
+    scene->clear();
+    bloqueadores.clear();
+
+    QPixmap fondo("OpenSprite/Mapa_7.png");
+    scene->setSceneRect(0, 0, fondo.width(), fondo.height());
+    scene->addPixmap(fondo);
+
+    view->resetTransform();
+    view->scale(0.5, 0.5);
+
+    zonaTransicionAMapa3DesdeMapa7 = scene->addRect(1455, 351, 30, 288, QPen(Qt::red));
+    zonaTransicionAMapa3DesdeMapa7->setBrush(Qt::transparent);
+    bloqueadores.append(zonaTransicionAMapa3DesdeMapa7);
+
+
+
+    if (!idleSheet.isNull()) {
+        QPixmap frame = idleSheet.copy(0, 0, 100, 100);
+        player = scene->addPixmap(frame);
+        player->setZValue(1);
+        player->setPos(330, 1410); // ← Posición inicial en mapa 7
+        player->setScale(4.0);
+        view->centerOn(player);
+    }
+    playerSpeed = 15;
+    if (moveTimer) moveTimer->start(50);
+    if (idleTimer) idleTimer->start(250);
+
+    QGraphicsRectItem* Mapa7colision1 = scene->addRect(711, 1317, 696, 336);
+    Mapa7colision1->setBrush(Qt::transparent); // invisible
+    Mapa7colision1->setPen(Qt::NoPen);
+    bloqueadores.append(Mapa7colision1);
+
+    QGraphicsRectItem* Mapa7colision2 = scene->addRect(1152, 723, 312, 741);
+    Mapa7colision2->setBrush(Qt::transparent); // invisible
+    Mapa7colision2->setPen(Qt::NoPen);
+    bloqueadores.append(Mapa7colision2);
+
+    QGraphicsRectItem* Mapa7colision3 = scene->addRect(984, 648, 411, 192);
+    Mapa7colision3->setBrush(Qt::transparent); // invisible
+    Mapa7colision3->setPen(Qt::NoPen);
+    bloqueadores.append(Mapa7colision3);
+
+    QGraphicsRectItem* Mapa7colision4 = scene->addRect(984, 21, 489, 306);
+    Mapa7colision4->setBrush(Qt::transparent); // invisible
+    Mapa7colision4->setPen(Qt::NoPen);
+    bloqueadores.append(Mapa7colision4);
+
+    QGraphicsRectItem* Mapa7colision5 = scene->addRect(18, 21, 957, 168);
+    Mapa7colision5->setBrush(Qt::transparent); // invisible
+    Mapa7colision5->setPen(Qt::NoPen);
+    bloqueadores.append(Mapa7colision5);
+
+    QGraphicsRectItem* Mapa7colision6 = scene->addRect(18, 21, 177, 1170);
+    Mapa7colision6->setBrush(Qt::transparent); // invisible
+    Mapa7colision6->setPen(Qt::NoPen);
+    bloqueadores.append(Mapa7colision6);
+
+    QGraphicsRectItem* Mapa7colision7 = scene->addRect(18, 1146, 327, 510);
+    Mapa7colision7->setBrush(Qt::transparent); // invisible
+    Mapa7colision7->setPen(Qt::NoPen);
+    bloqueadores.append(Mapa7colision7);
+
+    QGraphicsRectItem* Mapa7colision8 = scene->addRect(258, 1653, 453, 10);
+    Mapa7colision8->setBrush(Qt::transparent); // invisible
+    Mapa7colision8->setPen(Qt::NoPen);
+    bloqueadores.append(Mapa7colision8);
+
+    QGraphicsRectItem* Mapa7colision9 = scene->addRect(474, 150, 54, 402);
+    Mapa7colision9->setBrush(Qt::transparent); // invisible
+    Mapa7colision9->setPen(Qt::NoPen);
+    bloqueadores.append(Mapa7colision9);
+
+    QGraphicsRectItem* Mapa7colision10 = scene->addRect(486, 801, 528, 60);
+    Mapa7colision10->setBrush(Qt::transparent); // invisible
+    Mapa7colision10->setPen(Qt::NoPen);
+    bloqueadores.append(Mapa7colision10);
+}

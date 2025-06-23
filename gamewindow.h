@@ -13,6 +13,8 @@
 #include "grafomapavisual.h"
 #include "grafomapa.h"
 #include "personaje.h"
+#include "tiendawidget.h"
+#include "skilltreeviewer.h"
 
 #include <QWidget>
 
@@ -41,25 +43,25 @@ private slots:
     void updateIdle();
     void updateWizardIdle();
     void updateSlime2();
-    void checkSlime2Interaction();    // Colisión del segundo slime con el jugador
-    void cambiarAMundoNuevo();        // Cambio de mapa
+    void checkSlime2Interaction();
+    void cambiarAMundoNuevo();
 
     // En private slots:
-    void checkAxemanInteraction();    // Detecta proximidad
-    void iniciarDialogoAxeman();      // Inicia diálogo de historia
+    void checkAxemanInteraction();
+    void iniciarDialogoAxeman();
 
     void checkOrcInteraction();
     void updateOrc();
     void checkOrc2Interaction();
     void updateOrc2();
 
-    // void cambiarAMundoTres();
-
 private:
     QVector<Personaje*> aliados;
 
     MapaWidget* mapaWidget = nullptr;
     InventarioWidget* inventarioUI = nullptr;
+    SkillTreeViewer* skillTreeUI = nullptr;
+    TiendaWidget* tiendaUI=nullptr;
 
     QGraphicsView *view;
     QGraphicsScene *scene;
@@ -87,9 +89,6 @@ private:
     void checkWizardInteraction();
     void checkSlimeInteraction();
 
-
-    // void cambiarAMundoNuevo();
-
     bool mundoCambiado;
     int playerSpeed;
 
@@ -107,11 +106,8 @@ private:
     bool dialogoActivo = false;
 
     QGraphicsPixmapItem *dialogoCaja;
-
-    //QGraphicsRectItem *dialogoCaja = nullptr;
     QGraphicsTextItem *dialogoTexto = nullptr;
     QGraphicsTextItem *dialogoAyuda;
-
     QGraphicsTextItem *labelMago;
     QGraphicsTextItem *labelSlime;
 
@@ -120,8 +116,6 @@ private:
     int letraActualWizard = 0;
     QString textoParcialWizard;
     void updateLetraWizard();
-
-
 
     QStringList dialogoSegundoMapa;
     int fraseActualSegundoMapa = 0;
@@ -188,11 +182,11 @@ private:
 
     QGraphicsRectItem* zonaTransicionMapaTres = nullptr;
     bool regresoDesdeMapaTres = false;
-    // bool dialogoAxemanYaMostrado = false;
 
-    void cambiarAMundoCuatro();  // ← Nuevo slot para el mapa 4
-    QGraphicsRectItem* zonaTransicionAMapa4 = nullptr;  // Zona de transición desde mapa 2
-    bool mundoCuatroActivo = false;  // Si estás en el mapa 4
+
+    void cambiarAMundoCuatro();
+    QGraphicsRectItem* zonaTransicionAMapa4 = nullptr;
+    bool mundoCuatroActivo = false;
 
 
     QGraphicsRectItem* zonaTransicionDesdeMapa4 = nullptr;
@@ -208,14 +202,11 @@ private:
     void cambiarAMundoCinco();
 
 
-    // Estado del mundo
     bool mundoSeisActivo = false;
     bool puedeCambiarAMapa6 = false;
 
-    // Zona de transición desde mapa 4 a 6
     QGraphicsRectItem* zonaTransicionAMapa6 = nullptr;
 
-    // Función para cambiar al mapa 6
     void cambiarAMundoSeis();
 
     QGraphicsRectItem* zonaTransicionDesdeMapa6 = nullptr;
@@ -227,6 +218,22 @@ private:
     bool puedeCambiarAMapa5DesdeMapa6 = false;
 
     QGraphicsRectItem* zonaTransicionAMapa3DesdeMapa5 = nullptr;
+
+    QGraphicsRectItem* zonaTransicionAMapa7 = nullptr;
+    bool mundoSieteActivo = false;
+
+    void cambiarAMundoSiete();
+
+    QGraphicsRectItem* zonaTransicionAMapa3DesdeMapa7;
+    bool puedeCambiarAMapa3DesdeMapa7 = false;
+
+
+    // NPC en mapa 2
+    QGraphicsPixmapItem* npcTienda = nullptr;
+    QGraphicsTextItem* mensajeTienda = nullptr;
+    // bool mensajeMostradoTienda = false;
+
+
 
 };
 
