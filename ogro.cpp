@@ -33,7 +33,7 @@ Ogro::Ogro(TipoOgro tipo)
 
     case Armored:
         nombre = "Ogro Armored";
-        vidaMax = vidaActual = 150;
+        vidaMax = vidaActual = 140;
         ataque = 20;
 
         agregarAnimacion("idle",   cargarDesdeSpritesheet(rutaBase + "Armored Orc-Idle.png",   100, 100, 6), true);
@@ -45,7 +45,7 @@ Ogro::Ogro(TipoOgro tipo)
 
     case Elite:
         nombre = "Ogro Elite";
-        vidaMax = vidaActual = 200;
+        vidaMax = vidaActual = 160;
         //ataque = 25;
         ataque = 40;
 

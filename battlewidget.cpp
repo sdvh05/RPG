@@ -20,12 +20,26 @@ BattleWidget::BattleWidget(const QString& lugar, const QString& enemigo, QVector
     tieneRecompensaEspecial(recompensaEspecial)
 {
     setFixedSize(700, 700);
+    enemigoActual = enemigo;
+
 
     crearInterfaz();
     //CargarAliados();
     MostrarAliados();
     CargarEnemigos(enemigo);
     showFondo(lugar);
+
+    if (enemigoActual.toLower().contains("slime")) {
+        QVector<Personaje*> soloCaballero;
+        for (Personaje* p : aliados) {
+            if (p->getNombre().contains("Caballero", Qt::CaseInsensitive)) {
+                soloCaballero.append(p);
+                break;
+            }
+        }
+        aliados = soloCaballero;
+    }
+
 
     //CargarEnemigos();
     //CargarEnemigos("slime");
@@ -82,7 +96,7 @@ void BattleWidget::showFondo(const QString& ruta) {
         setFondo("Personajes/MapasCombate/CastilloCodigo.png");
     }
     if(ruta.contains("Subterraneo")){
-        setFondo("Personajes/MapasCombate/BosqueJS.png"); //*
+        setFondo("Personajes/MapasCombate/Sub.png");
     }
     if(ruta.contains("Ruinas")){
         setFondo("Personajes/MapasCombate/Ruinas.png");
@@ -326,29 +340,26 @@ void BattleWidget::CargarEnemigos() {
         enemigos.append(s);
     }
 
-    //Ogros
 }
 void BattleWidget::CargarEnemigos(const QString& tipo) {
     enemigos.clear();
 
     if (tipo == "slime") {
-        int cantidad = QRandomGenerator::global()->bounded(1, 4);
-        for (int i = 0; i < cantidad; ++i)
-            enemigos.append(new Slime());
+        enemigos.append(new Slime());
 
     } else if (tipo == "ogros normales") {
         for (int i = 0; i < 3; ++i)
-            enemigos.append(new Ogro(Ogro::Normal));
+        enemigos.append(new Ogro(Ogro::Normal));
 
     } else if (tipo == "rider") {
         enemigos.append(new Ogro(Ogro::Rider));
         enemigos.append(new Ogro(Ogro::Rider));
-        enemigos.append(new Ogro(Ogro::Normal));
+        //enemigos.append(new Ogro(Ogro::Normal));
 
     } else if (tipo == "armored") {
         enemigos.append(new Ogro(Ogro::Armored));
         enemigos.append(new Ogro(Ogro::Armored));
-        enemigos.append(new Ogro(Ogro::Normal));
+        //enemigos.append(new Ogro(Ogro::Normal));
 
     } else if (tipo == "elite") {
         //enemigos.append(new Ogro(Ogro::Normal));
@@ -367,6 +378,13 @@ void BattleWidget::CargarEnemigos(const QString& tipo) {
         enemigos.append(new Esqueleto(Esqueleto::EArmored));
         enemigos.append(new Esqueleto(Esqueleto::EArmored));
         enemigos.append(new Esqueleto(Esqueleto::ENormal));
+
+    } else if (tipo == "WereWolf") {
+        enemigos.append(new Were(Were::WereWolf));
+        enemigos.append(new Were(Were::WereWolf));
+
+    } else if (tipo == "WereBear") {
+        enemigos.append(new Were(Were::WereBear));
     }
 
     MostrarEnemigos();
@@ -404,7 +422,7 @@ void BattleWidget::accionSeleccionada(QString tipo) {
         personajeActual->abrirInventario(inventarioGlobal);
 
         // Esperar a que se use un objeto
-        connect(personajeActual, &Personaje::objetoUsadoEnInventario, this, [=](const Objeto& obj) {
+          connect(personajeActual, &Personaje::objetoUsadoEnInventario, this, [=](const Objeto& obj) {
             // Registrar la acción
             accionesAliados.append({ personajeActual, "inventario", nullptr });
 

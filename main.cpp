@@ -44,8 +44,8 @@ int main(int argc, char *argv[])
     aliados.append(new Curandera());
     aliados.append(new Caballero());
     aliados.append(new Princesa());
-    /*BattleWidget* batalla = new BattleWidget("Castillo Codigo", "elite",aliados,true);
-    batalla->show();*/
+    BattleWidget* batalla = new BattleWidget("BosqueJS", "WereWolf",aliados,true);
+    batalla->show();
 
     //return a.exec();
 

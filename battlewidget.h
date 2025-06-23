@@ -14,6 +14,7 @@
 #include "Slime.h"
 #include "ogro.h"
 #include "esqueletos.h"
+#include "were.h"
 
 #include "EfectoVisual.h"
 
@@ -82,6 +83,7 @@ private:
     QLabel* lblTextoStatsEnemigo;
 
     bool tieneRecompensaEspecial;
+    QString enemigoActual;
 
 
     void CargarAliados();

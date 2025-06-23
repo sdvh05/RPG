@@ -11,6 +11,7 @@ CONFIG += c++17
 SOURCES += \
     Aliados.cpp \
     Enemigos.cpp \
+    arboldecision.cpp \
     arbolhabilidad.cpp \
     battlewidget.cpp \
     caballero.cpp \
@@ -19,6 +20,7 @@ SOURCES += \
     files.cpp \
     grafomapa.cpp \
     grafomapavisual.cpp \
+    hashlogros.cpp \
     inventario.cpp \
     inventariowidget.cpp \
     main.cpp \
@@ -29,13 +31,15 @@ SOURCES += \
     skilltreeviewer.cpp \
     slime.cpp \
     gamewindow.cpp \
-    tiendawidget.cpp
+    tiendawidget.cpp \
+    were.cpp
 
 HEADERS += \
     Aliados.h \
     EfectoVisual.h \
     NodoSkill.h \
     Objeto.h \
+    arboldecision.h \
     arbolhabilidad.h \
     battlewidget.h \
     caballero.h \
@@ -44,6 +48,7 @@ HEADERS += \
     files.h \
     grafomapa.h \
     grafomapavisual.h \
+    hashlogros.h \
     inventario.h \
     inventariowidget.h \
     mainwindow.h \
@@ -54,7 +59,8 @@ HEADERS += \
     slime.h \
     CustomGraphicsView.h \
     gamewindow.h \
-    tiendawidget.h
+    tiendawidget.h \
+    were.h
 
 FORMS += \
     mainwindow.ui
