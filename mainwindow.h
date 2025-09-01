@@ -17,12 +17,6 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-private slots:
-
-
-    void on_B_SalirJuego_clicked();
-    void on_B_Jugar_clicked();
-
 private:
     Ui::MainWindow *ui;
 };
